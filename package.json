@@ -1,0 +1,15 @@
+{
+  "name": "ai-recorder",
+  "version": "1.0.0",
+  "private": true,
+  "author": "Horst <yanglongcui@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently --names \"frontend,backend\" --prefix-colors \"cyan,yellow\" \"yarn --cwd frontend dev\" \"yarn --cwd backend dev\"",
+    "build": "yarn --cwd frontend build && yarn --cwd backend build",
+    "install:all": "yarn --cwd frontend install && yarn --cwd backend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

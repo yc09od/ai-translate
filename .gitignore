@@ -1,6 +1,7 @@
 # environment variables
 .env
 .env.*
+node_modules
 
 # misc
 .DS_Store
