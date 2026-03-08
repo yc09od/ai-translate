@@ -1,0 +1,9 @@
+# environment variables
+.env
+.env.*
+
+# misc
+.DS_Store
+
+# OS
+Thumbs.db
