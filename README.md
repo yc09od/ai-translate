@@ -29,6 +29,12 @@ ai-recorder/
 └── backend/    # Fastify 后端服务
 ```
 
+## 全局依赖安装
+
+```bash
+npm install -g nodemon next
+```
+
 ## 环境依赖
 
 运行本项目前，请确保已安装以下软件：
