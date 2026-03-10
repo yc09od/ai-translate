@@ -102,7 +102,6 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
         <Button
           onClick={toggleRecording}
           variant="contained"
-          startIcon={isRecording ? null : <MicIcon />}
           sx={{
             background: isRecording ? '#ef4444' : '#6366f1',
             color: 'white',
@@ -134,7 +133,9 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
               />
               Recording
             </span>
-          ) : null}
+          ) : (
+            <MicIcon />
+          )}
         </Button>
         <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
 

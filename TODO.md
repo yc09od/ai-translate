@@ -30,7 +30,7 @@
 -- [25] [x] 重新设计原文译文。所有的原文译文放在一个容器里。垂直方向紧凑一些。
 -- [26] [x] 添加record按钮效果，当录音时，icon变为文字recording
 -- [27] [x] 原文（语音识别结果）展示区域 + 译文展示区域 添加5px margin-top
--- [28] [ ] 更改record button。当不录音的时候，mico icon应该在button中居中
+-- [28] [x] 更改record button。当不录音的时候，mico icon应该在button中居中
 -- [29] [ ] 更改展示区域的css，padding改为0 12px 16px 24px。 margin-right 24px。margin-top改为16px
 
 ## still think，do not do any item after this line
