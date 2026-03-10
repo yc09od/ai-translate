@@ -44,6 +44,7 @@ const MOCK_TOPICS = [
 
 export default function Sidebar() {
   const [expanded, setExpanded] = useState(false);
+  const [filter, setFilter] = useState('');
 
   return (
     <aside
@@ -78,9 +79,29 @@ export default function Sidebar() {
         {/* 展开时：topic 列表 + 新增 topic */}
         {expanded && (
           <div className="flex flex-col mt-4" style={{ padding: '0 15px', gap: '4px' }}>
-            {/* 可滚动的 topic 列表，最高 80vh */}
-            <div className="sidebar-scroll" style={{ maxHeight: '80vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
-              {MOCK_TOPICS.map((topic) => (
+            {/* Topic 过滤输入框 */}
+            <input
+              type="text"
+              placeholder="搜索 topic..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                borderRadius: '6px',
+                color: 'white',
+                fontSize: '13px',
+                outline: 'none',
+                padding: '6px 10px',
+                marginBottom: '6px',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}
+            />
+
+            {/* 可滚动的 topic 列表，最高 80vh 减去 filter input 高度 */}
+            <div className="sidebar-scroll" style={{ maxHeight: 'calc(80vh - 50px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
+              {MOCK_TOPICS.filter((t) => t.includes(filter)).map((topic) => (
                 <button
                   key={topic}
                   style={{
