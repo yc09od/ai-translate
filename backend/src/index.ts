@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import Fastify from 'fastify'
+import { connectMongoDB } from './db/mongodb'
 
 const PORT = parseInt(process.env.PORT || '8000', 10)
 
@@ -11,6 +12,7 @@ server.get('/health', async () => {
 
 const start = async () => {
   try {
+    await connectMongoDB()
     await server.listen({ port: PORT, host: '0.0.0.0' })
   } catch (err) {
     server.log.error(err)
