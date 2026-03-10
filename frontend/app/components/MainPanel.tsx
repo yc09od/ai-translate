@@ -67,7 +67,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       </div>
 
       {/* 翻译展示区 — flex-1，可滚动 */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', marginTop: '5px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 16px 24px', marginRight: '24px', marginTop: '16px' }}>
         {translations.length === 0 ? (
           <p style={{ color: '#cbd5e1', fontSize: '15px', margin: 0 }}>翻译内容将显示在此处...</p>
         ) : (
