@@ -50,6 +50,19 @@
   3. 调用翻译 API（Gemini / Kimi）→ 得到译文
   4. 将译文返回客户端并存入 MongoDB
 
+### 用户认证（OAuth + JWT）
+
+- **不支持本地注册/密码**，用户只能通过 Google Gmail 或 Microsoft Hotmail 的 OAuth 登录。
+- **登录逻辑**：
+  1. 前端将 OAuth token 发给后端（`POST /auth/oauth`）
+  2. 后端向 OAuth 提供商验证 token，获取用户 email
+  3. 在 MongoDB 中查找该 email 的用户
+     - **已存在** → 直接签发本地 JWT
+     - **不存在** → 创建新 User 文档，再签发 JWT
+  4. JWT 存储于 Redis（含 TTL）作为 session
+  5. 登出时删除 Redis session key
+- `userService` 的新用户创建**仅由 OAuth 回调触发**，不暴露独立的注册接口。
+
 ---
 
 ## 数据流（实时翻译请求）

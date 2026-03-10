@@ -38,6 +38,29 @@
 *   **缓存数据库**: Redis
     *   **用途**: 缓存频繁访问的数据，例如用户会话信息或最近的翻译，以提高性能。
 
+### 2.3.1. Auth Flow — OAuth + JWT
+
+用户**只能**通过 OAuth 登录（Google Gmail 或 Microsoft Hotmail），不支持本地注册/密码。
+
+**登录流程：**
+
+```
+前端
+  └─► POST /auth/oauth  { provider: "google"|"hotmail", oauthToken }
+        │
+        ▼
+        后端：向 OAuth 提供商验证 token，获取 email
+        │
+        ├─ MongoDB 中存在该 email？
+        │     └─ YES → 直接签发 JWT
+        │
+        └─ NO → 创建新 User 文档 → 签发 JWT
+```
+
+- JWT 由本地 server 签发，存储于 Redis（含 TTL）作为 session。
+- `userService` 的创建用户逻辑**仅在此处触发**，没有独立的"注册"接口。
+- 登出时删除 Redis 中对应的 session key。
+
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。
 *   **翻译 API**: 用于将文本从源语言翻译成目标语言的 Gemini API 或 Kimi API。
