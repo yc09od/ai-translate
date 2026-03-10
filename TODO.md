@@ -73,8 +73,12 @@
     -- 调用 `findByEmail`：存在 → 直接签发 JWT；不存在 → 调用 `createUser` 后签发 JWT
     -- 将签发的 JWT 存入 Redis（含 TTL）作为 session
   -- [45.4] [x] 实现 `POST /auth/logout` 路由 — 删除 Redis 中对应的 session key
--- [46] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
--- [47] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
+
+-- [46] [x] 添加api 文档工具swagger
+-- [47] [x] 添加api dev 为 http://localhost:8000/oauth/google/callback, route 为/oauth/{oauthProvider}/callback，为了google oauth回调
+
+-- [49] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
+-- [50] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
 
 ### 基础设施
 
@@ -82,6 +86,10 @@
 -- [49] [ ] 在 Fastify 注册插件时注入 DB 连接（使用 `fastify.decorate`）
 
 ## still think，do not do any item after this line
+
+http://localhost:8000/oauth/google/callback
+
+777764662386-oe7j0cgba6k5i816o9qo6jv9l99nhd79.apps.googleusercontent.com
 
 -- 读取流
 我们需要api连续的读取音频流
