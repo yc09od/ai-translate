@@ -41,7 +41,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       analyserRef.current = analyser;
 
       const data = new Uint8Array(analyser.frequencyBinCount);
-      const bins = [1, 3, 5, 3, 1]; // pick 5 frequency bins
+      const bins = [1, 2, 3, 4, 5, 6, 5, 4, 3, 1]; // pick 10 frequency bins
 
       const tick = () => {
         analyser.getByteFrequencyData(data);
@@ -97,9 +97,9 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
         <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
           {selectedTopic ?? '请选择或新建 Topic'}
         </h1>
-        {/* 实时波形：5 根小竖条 */}
+        {/* 实时波形：10 根小竖条 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '24px' }}>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
             <span
               key={i}
               ref={(el) => { barRefs.current[i] = el; }}
