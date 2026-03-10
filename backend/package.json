@@ -7,7 +7,8 @@
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test:db": "ts-node src/scripts/testDb.ts"
+    "test:db": "ts-node src/scripts/testDb.ts",
+    "test:redis": "ts-node src/scripts/testRedis.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

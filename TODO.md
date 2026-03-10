@@ -58,9 +58,9 @@
 ### Redis (ioredis)
 
 **连接与初始化**
--- [41] [ ] 创建 `db/redis.ts` — 封装 ioredis 连接，含错误处理
--- [42] [ ] 在 `index.ts` 启动时初始化 Redis 连接
--- [43] [ ] 添加dev 参数，我的redis本地为docker 为localhost:6379。写一个测试，测试链接
+-- [41] [x] 创建 `db/redis.ts` — 封装 ioredis 连接，含错误处理
+-- [42] [x] 在 `index.ts` 启动时初始化 Redis 连接
+-- [43] [x] 添加dev 参数，我的redis本地为docker 为localhost:6379。写一个测试，测试链接
 
 **会话管理**
 -- [44] [ ] 实现 `sessionStore` — 用 Redis 存储 JWT session（含 TTL 过期）
@@ -88,9 +88,6 @@
 -- 储存历史
 我们需要api提供罗列topic list的能力
 我们需要api提供罗列topic history的能力
-
--- 数据库
-我们需要api有编辑数据库的能力
 
 -- config
 我们需要api有读取env config的能力
