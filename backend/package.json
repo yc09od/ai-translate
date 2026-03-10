@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test:db": "ts-node src/scripts/testDb.ts",
-    "test:redis": "ts-node src/scripts/testRedis.ts"
+    "test:redis": "ts-node src/scripts/testRedis.ts",
+    "test:session": "ts-node src/scripts/testSession.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

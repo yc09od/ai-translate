@@ -139,6 +139,47 @@
 
 ---
 
+## 后端实现进度（数据库层）
+
+### MongoDB (mongoose)
+
+**数据模型**
+- `backend/src/models/User.ts` — 字段：`email`, `name`, `provider`(google/hotmail), `createdAt`
+- `backend/src/models/Topic.ts` — 字段：`userId`, `title`, `sourceLang`, `targetLang`, `createdAt`
+- `backend/src/models/TranslationRecord.ts` — 字段：`topicId`, `userId`, `originalText`, `translatedText`, `timestamp`
+
+**连接**
+- `backend/src/db/mongodb.ts` — `connectMongoDB()` / `disconnectMongoDB()`，带事件监听（connected / error / disconnected）
+- `backend/src/index.ts` 启动时调用 `connectMongoDB()`
+- 本地开发：`MONGODB_URI=mongodb://localhost:27017/ai-translate`（Docker）
+- 测试脚本：`yarn test:db`
+
+### Redis (ioredis)
+
+**连接**
+- `backend/src/db/redis.ts` — 导出 `redis` 实例，`connectRedis()` / `disconnectRedis()`，带事件监听
+- `backend/src/index.ts` 启动时调用 `connectRedis()`
+- 本地开发：`REDIS_URL=redis://localhost:6379`（Docker）
+- 测试脚本：`yarn test:redis`
+
+**会话管理**
+- `backend/src/services/sessionStore.ts` — `setSession()` / `getSession()` / `deleteSession()`
+  - key 格式：`session:{userId}`
+  - TTL：7天（604800秒）
+  - 登出时调用 `deleteSession(userId)` 删除 key
+- 测试脚本：`yarn test:session`
+
+### 环境变量（backend/.env）
+
+```
+PORT=8000
+MONGODB_URI=mongodb://localhost:27017/ai-translate
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=dev-secret
+```
+
+---
+
 ## 未来规划
 
 - 支持更多语言

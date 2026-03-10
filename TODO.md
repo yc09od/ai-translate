@@ -49,12 +49,6 @@
 -- [36] [x] 在 `index.ts` 启动时初始化 MongoDB 连接
 -- [37] [x] 添加dev 参数，我的mongodb本地为docker 为localhost:27017。写一个测试，测试链接，测试添加一个user，topic和 TranslationRecord 实例。
 
-
-**数据访问层**
--- [38] [ ] `userService` — 创建用户、按 email 查找用户（OAuth 登录用）
--- [39] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
--- [40] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
-
 ### Redis (ioredis)
 
 **连接与初始化**
@@ -63,12 +57,17 @@
 -- [43] [x] 添加dev 参数，我的redis本地为docker 为localhost:6379。写一个测试，测试链接
 
 **会话管理**
--- [44] [ ] 实现 `sessionStore` — 用 Redis 存储 JWT session（含 TTL 过期）
--- [45] [ ] 实现登出时删除 session（token blacklist 或直接删 key）
+-- [44] [x] 实现 `sessionStore` — 用 Redis 存储 JWT session（含 TTL 过期）
+-- [45] [x] 实现登出时删除 session（token blacklist 或直接删 key）
 
 **缓存**
 -- [46] [ ] 缓存用户基本信息（减少重复 MongoDB 查询）
 -- [47] [ ] 缓存最近的翻译记录列表（按 topicId）
+
+**数据访问层**
+-- [38] [ ] `userService` — 创建用户、按 email 查找用户（OAuth 登录用）
+-- [39] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
+-- [40] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
 
 ### 基础设施
 

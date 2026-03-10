@@ -29,6 +29,8 @@
         3.  调用翻译 API（Gemini 或 Kimi）翻译文本。
         4.  将翻译后的文本发送回客户端。
     *   从 MongoDB 存储和检索主题和翻译历史数据。
+    *   从 Redis 缓存最近的翻译记录。
+    *   JWT session storage.
 
 ### 2.3. 数据库
 *   **主数据库**: MongoDB
