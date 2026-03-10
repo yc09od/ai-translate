@@ -42,7 +42,12 @@ const MOCK_TOPICS = [
   '移民咨询',
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  selectedTopic: string | null;
+  onSelectTopic: (topic: string) => void;
+}
+
+export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState('');
 
@@ -104,10 +109,11 @@ export default function Sidebar() {
               {MOCK_TOPICS.filter((t) => t.includes(filter)).map((topic) => (
                 <button
                   key={topic}
+                  onClick={() => onSelectTopic(topic)}
                   style={{
                     color: 'white',
-                    background: 'rgba(255,255,255,0.12)',
-                    border: 'none',
+                    background: selectedTopic === topic ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
+                    border: selectedTopic === topic ? '1px solid rgba(255,255,255,0.6)' : 'none',
                     borderRadius: '6px',
                     padding: '8px 10px',
                     textAlign: 'left',
