@@ -1,12 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import IconButton from '@mui/material/IconButton';
+import { useState, useRef, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
 import SendIcon from '@mui/icons-material/Send';
-import AudioWaveform from './AudioWaveform';
 
 interface MainPanelProps {
   selectedTopic: string | null;
@@ -28,6 +25,47 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [translations, setTranslations] = useState<TranslationPair[]>(MOCK_TRANSLATIONS);
   const [inputText, setInputText] = useState('');
+
+  const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const animationRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isRecording && stream) {
+      const audioCtx = new AudioContext();
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 32;
+      audioCtx.createMediaStreamSource(stream).connect(analyser);
+      audioCtxRef.current = audioCtx;
+      analyserRef.current = analyser;
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const bins = [1, 3, 5, 3, 1]; // pick 5 frequency bins
+
+      const tick = () => {
+        analyser.getByteFrequencyData(data);
+        bins.forEach((bin, i) => {
+          const bar = barRefs.current[i];
+          if (bar) {
+            const val = data[bin] / 255;
+            const h = Math.max(4, Math.round(val * 24));
+            bar.style.height = `${h}px`;
+          }
+        });
+        animationRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } else {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (audioCtxRef.current) audioCtxRef.current.close();
+      barRefs.current.forEach((bar) => { if (bar) bar.style.height = '6px'; });
+    }
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (audioCtxRef.current) audioCtxRef.current.close();
+    };
+  }, [isRecording, stream]);
 
   const handleSubmit = () => {
     const text = inputText.trim();
@@ -54,16 +92,28 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
   return (
     <main className="flex flex-1 flex-col h-screen overflow-hidden">
-      {/* Topic title — 不参与滚动 */}
-      <div style={{ padding: '24px 24px 0', flexShrink: 0 }}>
+      {/* Topic title + 简单波形 — 同一行，不参与滚动 */}
+      <div style={{ padding: '24px 24px 0', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
           {selectedTopic ?? '请选择或新建 Topic'}
         </h1>
-      </div>
-
-      {/* 音频波形 — 不参与滚动 */}
-      <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
-        <AudioWaveform isRecording={isRecording} stream={stream} />
+        {/* 实时波形：5 根小竖条 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '24px' }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span
+              key={i}
+              ref={(el) => { barRefs.current[i] = el; }}
+              style={{
+                display: 'inline-block',
+                width: '3px',
+                borderRadius: '2px',
+                background: isRecording ? '#6366f1' : '#cbd5e1',
+                height: '6px',
+                transition: 'background 0.3s',
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {/* 翻译展示区 — flex-1，可滚动 */}
