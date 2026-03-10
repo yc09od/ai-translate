@@ -91,7 +91,28 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
       {/* 下部分：底部输入区，固定在底部 */}
       <div className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 bg-white">
-        {/* 内容由后续任务填充 */}
+        {/* 麦克风按钮 — 由后续任务填充 */}
+
+        {/* 文字输入框 */}
+        <input
+          type="text"
+          placeholder="输入文字进行翻译..."
+          style={{
+            flex: 1,
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            fontSize: '15px',
+            color: '#1e293b',
+            outline: 'none',
+            background: '#f8fafc',
+            transition: 'border-color 0.2s',
+          }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = '#6366f1')}
+          onBlur={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
+        />
+
+        {/* 提交按钮 — 由后续任务填充 */}
       </div>
     </main>
   );
