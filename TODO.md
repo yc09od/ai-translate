@@ -32,6 +32,6 @@
 -- [27] [x] 原文（语音识别结果）展示区域 + 译文展示区域 添加5px margin-top
 -- [28] [x] 更改record button。当不录音的时候，mico icon应该在button中居中
 -- [29] [x] 更改展示区域的css，padding改为0 12px 16px 24px。 margin-right 24px。margin-top改为16px
--- [30] [ ] 更改展示区域的css，padding改为0 12px 0 24px。 margin-bottom改为16px
+-- [30] [x] 更改展示区域的css，padding改为0 12px 0 24px。 margin-bottom改为16px
 
 ## still think，do not do any item after this line
