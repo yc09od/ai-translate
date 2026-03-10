@@ -1,6 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import IconButton from '@mui/material/IconButton';
+import Button from '@mui/material/Button';
+import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
+import SendIcon from '@mui/icons-material/Send';
 import AudioWaveform from './AudioWaveform';
 
 interface MainPanelProps {
@@ -22,18 +27,42 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [translations, setTranslations] = useState<TranslationPair[]>(MOCK_TRANSLATIONS);
+  const [inputText, setInputText] = useState('');
+
+  const handleSubmit = () => {
+    const text = inputText.trim();
+    if (!text) return;
+    setTranslations((prev) => [...prev, { original: text, translated: '（翻译中...）' }]);
+    setInputText('');
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      stream?.getTracks().forEach((t) => t.stop());
+      setStream(null);
+      setIsRecording(false);
+    } else {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setStream(s);
+        setIsRecording(true);
+      } catch {
+        alert('无法访问麦克风，请检查浏览器权限。');
+      }
+    }
+  };
 
   return (
     <main className="flex flex-1 flex-col h-screen overflow-hidden">
       {/* Topic title — 不参与滚动 */}
-      <div style={{ padding: '24px 24px 0' }}>
+      <div style={{ padding: '24px 24px 0', flexShrink: 0 }}>
         <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
           {selectedTopic ?? '请选择或新建 Topic'}
         </h1>
       </div>
 
       {/* 音频波形 — 不参与滚动 */}
-      <div style={{ padding: '16px 24px 0' }}>
+      <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
         <AudioWaveform isRecording={isRecording} stream={stream} />
       </div>
 
@@ -91,12 +120,30 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
       {/* 下部分：底部输入区，固定在底部 */}
       <div className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 bg-white">
-        {/* 麦克风按钮 — 由后续任务填充 */}
+        {/* 麦克风按钮 */}
+        <IconButton
+          onClick={toggleRecording}
+          sx={{
+            background: isRecording ? '#ef4444' : '#6366f1',
+            color: 'white',
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            '&:hover': { background: isRecording ? '#dc2626' : '#4f46e5' },
+            boxShadow: isRecording ? '0 0 0 4px rgba(239,68,68,0.2)' : 'none',
+            transition: 'all 0.2s',
+          }}
+        >
+          {isRecording ? <MicOffIcon /> : <MicIcon />}
+        </IconButton>
 
         {/* 文字输入框 */}
         <input
           type="text"
           placeholder="输入文字进行翻译..."
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           style={{
             flex: 1,
             border: '1px solid #e2e8f0',
@@ -112,7 +159,24 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
           onBlur={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
         />
 
-        {/* 提交按钮 — 由后续任务填充 */}
+        {/* 提交按钮 */}
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={!inputText.trim()}
+          endIcon={<SendIcon />}
+          sx={{
+            background: '#6366f1',
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 600,
+            flexShrink: 0,
+            '&:hover': { background: '#4f46e5' },
+            '&:disabled': { background: '#e2e8f0', color: '#94a3b8' },
+          }}
+        >
+          提交
+        </Button>
       </div>
     </main>
   );
