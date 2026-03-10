@@ -67,75 +67,76 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       </div>
 
       {/* 翻译展示区 — flex-1，可滚动 */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '16px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-        }}
-      >
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px', marginTop: '5px' }}>
         {translations.length === 0 ? (
           <p style={{ color: '#cbd5e1', fontSize: '15px', margin: 0 }}>翻译内容将显示在此处...</p>
         ) : (
-          translations.map((pair, i) => (
-            <div
-              key={i}
-              style={{
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                background: '#f8fafc',
-                padding: '14px 18px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              {/* 原文 */}
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  原文
-                </span>
-                <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#1e293b', lineHeight: 1.6 }}>
-                  {pair.original}
+          <div
+            style={{
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              overflow: 'hidden',
+            }}
+          >
+            {translations.map((pair, i) => (
+              <div key={i} style={{ padding: '10px 16px' }}>
+                <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: '#1e293b' }}>
+                  <span style={{ fontWeight: 700, color: '#94a3b8' }}>O:</span> {pair.original}
                 </p>
-              </div>
-              {/* 分隔线 */}
-              <div style={{ borderTop: '1px solid #e2e8f0' }} />
-              {/* 译文 */}
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#6366f1', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  译文
-                </span>
-                <p style={{ margin: '4px 0 0', fontSize: '15px', color: '#3730a3', lineHeight: 1.6 }}>
-                  {pair.translated}
+                <p style={{ margin: '2px 0 0', fontSize: '14px', lineHeight: 1.6, color: '#3730a3' }}>
+                  <span style={{ fontWeight: 700, color: '#6366f1' }}>T:</span> {pair.translated}
                 </p>
+                {i < translations.length - 1 && (
+                  <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '10px' }} />
+                )}
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
       {/* 下部分：底部输入区，固定在底部 */}
       <div className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 bg-white">
         {/* 麦克风按钮 */}
-        <IconButton
+        <Button
           onClick={toggleRecording}
+          variant="contained"
+          startIcon={isRecording ? null : <MicIcon />}
           sx={{
             background: isRecording ? '#ef4444' : '#6366f1',
             color: 'white',
-            width: 44,
             height: 44,
+            minWidth: isRecording ? 120 : 44,
+            width: isRecording ? 'auto' : 44,
+            padding: isRecording ? '0 14px' : 0,
             flexShrink: 0,
+            borderRadius: '8px',
+            textTransform: 'none',
+            fontWeight: 600,
+            fontSize: '14px',
             '&:hover': { background: isRecording ? '#dc2626' : '#4f46e5' },
             boxShadow: isRecording ? '0 0 0 4px rgba(239,68,68,0.2)' : 'none',
             transition: 'all 0.2s',
           }}
         >
-          {isRecording ? <MicOffIcon /> : <MicIcon />}
-        </IconButton>
+          {isRecording ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: 'white',
+                  animation: 'pulse 1s infinite',
+                  flexShrink: 0,
+                }}
+              />
+              Recording
+            </span>
+          ) : null}
+        </Button>
+        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
 
         {/* 文字输入框 */}
         <input
