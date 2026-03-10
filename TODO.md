@@ -65,7 +65,14 @@
 -- [44] [x] 缓存最近的翻译记录列表（按 topicId）
 
 **数据访问层**
--- [45] [ ] `userService` — 创建用户、按 email 查找用户（OAuth 登录用）
+-- [45] [x] `userService` + OAuth 登录流程实现（架构 2.3.1）
+  -- [45.1] [x] 实现 `findByEmail(email)` — 按 email 查询 MongoDB 中的 User 文档
+  -- [45.2] [x] 实现 `createUser({ email, name, provider })` — 创建新 User 文档（仅在 OAuth 登录时触发，无独立注册接口）
+  -- [45.3] [x] 实现 `POST /auth/oauth` 路由 — 接收 `{ provider: "google"|"hotmail", oauthToken }`
+    -- 向 OAuth 提供商（Google/Hotmail）验证 oauthToken，获取 email 和 name
+    -- 调用 `findByEmail`：存在 → 直接签发 JWT；不存在 → 调用 `createUser` 后签发 JWT
+    -- 将签发的 JWT 存入 Redis（含 TTL）作为 session
+  -- [45.4] [x] 实现 `POST /auth/logout` 路由 — 删除 Redis 中对应的 session key
 -- [46] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
 -- [47] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
 
