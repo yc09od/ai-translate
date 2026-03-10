@@ -1,6 +1,6 @@
 import { redis } from '../db/redis'
 
-const SESSION_TTL = 7 * 24 * 60 * 60 // 7 days in seconds
+const SESSION_TTL = parseInt(process.env.SESSION_TTL ?? '604800', 10)
 
 export interface SessionData {
   userId: string

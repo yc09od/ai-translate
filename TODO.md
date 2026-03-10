@@ -61,8 +61,8 @@
 -- [42] [x] 实现登出时删除 session（token blacklist 或直接删 key）
 
 **缓存**
--- [43] [ ] 缓存用户基本信息（减少重复 MongoDB 查询）
--- [44] [ ] 缓存最近的翻译记录列表（按 topicId）
+-- [43] [x] 缓存用户基本信息（减少重复 MongoDB 查询）
+-- [44] [x] 缓存最近的翻译记录列表（按 topicId）
 
 **数据访问层**
 -- [45] [ ] `userService` — 创建用户、按 email 查找用户（OAuth 登录用）
