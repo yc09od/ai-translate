@@ -9,8 +9,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // token cookie is not HttpOnly, so JS can read it for auth checks
+    const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('token='));
+    if (!hasToken) {
       router.replace('/login');
     } else {
       setChecked(true);

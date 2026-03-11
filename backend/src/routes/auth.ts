@@ -92,7 +92,12 @@ export async function authRoutes(fastify: FastifyInstance) {
       await setSession(userId, { userId, email, provider: "google" });
       await setRefreshToken(userId, refreshToken);
 
-      return reply.redirect(`${frontendUrl}/login?token=${token}&refreshToken=${refreshToken}`);
+      const isProd = process.env.NODE_ENV === "production";
+      const cookieBase = { sameSite: "strict" as const, secure: isProd, path: "/" };
+      reply.setCookie("token", token, { ...cookieBase, httpOnly: false, maxAge: 3600 });
+      reply.setCookie("refreshToken", refreshToken, { ...cookieBase, httpOnly: true, maxAge: 2592000 });
+
+      return reply.redirect(`${frontendUrl}/dashboard`);
     },
   );
 

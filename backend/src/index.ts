@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { exec } from 'child_process'
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import fjwt from '@fastify/jwt'
+import fcookie from '@fastify/cookie'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import mongoose from 'mongoose'
@@ -49,6 +50,9 @@ server.register(swaggerUi, {
   routePrefix: '/docs',
   uiConfig: { docExpansion: 'list' },
 })
+
+// Cookie
+server.register(fcookie)
 
 // JWT
 server.register(fjwt, { secret: JWT_SECRET })

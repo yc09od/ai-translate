@@ -1,26 +1,18 @@
 'use client';
 
 import { Box, Button, Typography } from '@mui/material';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 
-// [61][62] Handle OAuth callback: parse token+refreshToken from URL, store, redirect
+// [63] Redirect already-logged-in users to dashboard
 function OAuthCallbackHandler() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refreshToken');
-    if (token && refreshToken) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', refreshToken);
-      router.replace('/dashboard');
-    } else if (localStorage.getItem('token')) {
-      // [63] Already logged in → redirect to dashboard
+    if (document.cookie.split(';').some(c => c.trim().startsWith('token='))) {
       router.replace('/dashboard');
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   return null;
 }
