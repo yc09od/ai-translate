@@ -45,6 +45,8 @@
 *   **主数据库**: MongoDB
     *   **用途**: 存储用户数据、主题和翻译历史。
     *   **Topic 排序**：`Topic` model 包含 `order` 字段（Number），新建 topic 时自动赋值为当前用户所有 topic 中最小 `order` 减 1（使新 topic 始终排在列表最前）。`GET /topics` 按 `order` 升序返回。
+    *   **Topic 更新 API**：`PATCH /topics/:topicId` 支持更新 topic `title` 字段（用于 inline 编辑）。
+    *   **Topic 批量排序 API**：`PUT /topics/reorder` 接受 `[{ id, order }]` 数组，批量更新当前用户 topic 的 `order` 字段（用于拖拽排序）。
 *   **缓存数据库**: Redis
     *   **用途**: 缓存频繁访问的数据，例如用户会话信息或最近的翻译，以提高性能。
 

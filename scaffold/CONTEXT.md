@@ -176,8 +176,11 @@
   - 展开 icon 变为缩小 icon（点击后收起）
   - 显示 topic 过滤输入框（搜索框），用于筛选 topic 列表
   - 显示所有已有 topic 列表（根据搜索框内容过滤）
-  - 每条 topic 条目最右侧有 delete icon button；点击后弹出确认 dialog，确认则调用 API 删除该 topic 并刷新列表
+  - 每条 topic 条目右侧按钮区：**edit icon button**（在 delete button 左边）+ delete icon button
+    - 点击 edit button 后，条目变为 inline input，右侧出现 submit/cancel button；提交后调用后端更新 title 接口并刷新列表
+  - 点击 delete icon button 后弹出确认 dialog，确认则调用 API 删除该 topic 并刷新列表
   - **「新增 Topic」按钮位于 topic list 顶端**（搜索框正下方）
+  - topic 列表支持**拖拽排序**：可拖拽条目调整顺序，松手后调用 `PUT /topics/reorder` 接口批量更新 order
   - topic 列表按 `order` 字段升序展示，新建的 topic 自动排在最前
   - topic list有最高高度，超过最高高度，需要展示滚动条
   - 设置 icon 保持可见，展开时整体向左平移
