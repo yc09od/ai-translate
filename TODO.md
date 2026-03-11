@@ -85,12 +85,12 @@
 -- [50] [x] 配置 `.env` — `MONGODB_URI`, `REDIS_URL`, `JWT_SECRET` 等环境变量
 -- [51] [x] 在 Fastify 注册插件时注入 DB 连接（使用 `fastify.decorate`）
 
-## 登录页（/login）
+## 前端网页登录页（/login）
 
--- [52] [ ] 创建登录页路由 `/login`，整体布局为左右两栏全屏高度
--- [53] [ ] 实现左侧渐变色背景 Container（纯装饰，无交互元素）
--- [54] [ ] 实现右侧内容区垂直水平居中布局
--- [55] [ ] 添加 App Title 标题，位于按钮上方
+-- [52] [x] 创建登录页路由 `/login`，整体布局为左右两栏全屏高度
+-- [53] [x] 实现左侧渐变色背景 Container（纯装饰，无交互元素）
+-- [54] [x] 实现右侧内容区垂直水平居中布局
+-- [55] [x] 添加 App Title 标题，位于按钮上方
 -- [56] [ ] 实现 Gmail 登录按钮（左侧 Google SVG logo + 右侧文字 "Sign in with Gmail"）
 -- [57] [ ] 实现 Hotmail 登录按钮（左侧 Microsoft SVG logo + 右侧文字 "Sign in with Hotmail"）
 -- [58] [ ] 两个按钮样式统一（相同宽度，垂直排列，间距适中）
