@@ -136,17 +136,27 @@
 -- [86] [x] 前端 Sidebar：实现「新增 Topic」内联输入交互：点击按钮后变形为 input + Submit/Cancel 按钮；点击 Cancel 或 input blur 时恢复按钮状态；防止 blur 先于 click 触发导致误取消。
 -- [87] [x] 修复前端 Sidebar：topic 选中高亮逻辑改用 `_id` 而非 `title` 作为唯一标识，避免同名 topic 同时高亮。
 -- [88] [x] 前端 apiClient：添加 `deleteTopic(id)` 函数，调用 `DELETE /topics/:id`。
--- [89] [ ] 前端 Sidebar：每个 topic 条目右侧添加 delete icon button，点击后弹出确认 dialog；确认后调用 `deleteTopic(id)` 并刷新 topic 列表。
+-- [89] [x] 前端 Sidebar：每个 topic 条目右侧添加 delete icon button，点击后弹出确认 dialog；确认后调用 `deleteTopic(id)` 并刷新 topic 列表。
 
 ## 品牌与网站标识
 
--- [90] [ ] 更新网站名字：修改 `frontend/app/layout.tsx` 中的 `metadata.title`，同时更新登录页 App Title 显示文字。
--- [91] [ ] 替换网站 favicon：将新图标文件放入 `frontend/app/` 或 `frontend/public/`，替换默认 `favicon.ico`。
+-- [90] [x] 更新网站名字：修改 `frontend/app/layout.tsx` 中的 `metadata.title`，同时更新登录页 App Title 显示文字。
+-- [91] [x] 替换网站 favicon：将新图标文件放入 `frontend/app/` 或 `frontend/public/`，替换默认 `favicon.ico`。
 
 
 ## Token 后台保活
 
 -- [92] [ ] 前端：实现定时器驱动的 token 主动续期——页面加载后启动定期检查（每分钟），当 access token 距过期时间低于阈值（如5分钟）时，自动用 refresh token 换取新 token，解决页面长时间打开但无操作时 token 静默过期的问题
+
+## Fastify 配置
+
+-- [93] [x] 后端：在 Fastify CORS 配置中添加 PUT、PATCH、DELETE 到 `methods` 允许列表，确保前端可以调用完整的 CRUD 接口
+
+## Topic 排序
+
+-- [94] [ ] 后端：Topic model 添加 `order` 字段（Number），`POST /topics` 新建时自动赋值为当前用户最小 order 减 1（使新 topic 排最前）
+-- [95] [ ] 后端：`GET /topics` 路由改为按 `order` 升序返回 topic 列表
+-- [96] [ ] 前端 Sidebar：将「新增 Topic」按钮移至 topic list 顶端（搜索框正下方），topic 列表展示顺序与后端返回顺序一致
 
 ## pending things Start
 

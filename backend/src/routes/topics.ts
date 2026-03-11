@@ -125,6 +125,7 @@ export async function topicRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { userId } = request.user as { userId: string }
       const { topicId } = request.params as { topicId: string }
+      console.log(`########Attempting to delete topic ${topicId} for user ${userId}`)
       const deleted = await deleteTopic(topicId, userId)
       if (!deleted) {
         return reply.status(404).send({ error: 'Topic not found' })

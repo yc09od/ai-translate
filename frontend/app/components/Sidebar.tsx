@@ -14,7 +14,14 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { logoutUser, getTopics, createTopic } from '@/lib/apiClient';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import { logoutUser, getTopics, createTopic, deleteTopic } from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
 import type { RootState } from '@/lib/store/store';
 
@@ -38,7 +45,7 @@ function getUsernameFromCookie(): string {
 
 interface SidebarProps {
   selectedTopic: { id: string; title: string } | null;
-  onSelectTopic: (topic: { id: string; title: string }) => void;
+  onSelectTopic: (topic: { id: string; title: string } | null) => void;
   onOpenUserProfile: () => void;
 }
 
@@ -51,6 +58,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const [adding, setAdding] = useState(false);
   const [newTopicTitle, setNewTopicTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cancelBlurRef = useRef(false);
 
@@ -168,26 +176,44 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
             {/* 可滚动的 topic 列表，最高 80vh 减去 filter input 高度 */}
             <div className="sidebar-scroll" style={{ maxHeight: 'calc(80vh - 50px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
               {topics.filter((t) => t.title.includes(filter)).map((topic) => (
-                <button
+                <div
                   key={topic.id}
-                  onClick={() => onSelectTopic({ id: topic.id, title: topic.title })}
                   style={{
-                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
                     background: selectedTopic?.id === topic.id ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
-                    border: selectedTopic?.id === topic.id ? '1px solid rgba(255,255,255,0.6)' : 'none',
+                    border: selectedTopic?.id === topic.id ? '1px solid rgba(255,255,255,0.6)' : '1px solid transparent',
                     borderRadius: '6px',
-                    padding: '8px 10px',
-                    textAlign: 'left',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
                     flexShrink: 0,
                   }}
                 >
-                  {topic.title}
-                </button>
+                  <button
+                    onClick={() => onSelectTopic({ id: topic.id, title: topic.title })}
+                    style={{
+                      flex: 1,
+                      color: 'white',
+                      background: 'none',
+                      border: 'none',
+                      padding: '8px 10px',
+                      textAlign: 'left',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      minWidth: 0,
+                    }}
+                  >
+                    {topic.title}
+                  </button>
+                  <IconButton
+                    size="small"
+                    onClick={() => setDeleteConfirmId(topic.id)}
+                    sx={{ color: 'rgba(255,255,255,0.5)', padding: '4px', flexShrink: 0, '&:hover': { color: 'rgba(255,255,255,0.9)' } }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </div>
               ))}
             </div>
 
@@ -322,6 +348,36 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
           </MenuItem>
         </Menu>
       </div>
+
+      {/* [89] 删除确认 dialog */}
+      <Dialog open={Boolean(deleteConfirmId)} onClose={() => setDeleteConfirmId(null)}>
+        <DialogTitle>删除 Topic</DialogTitle>
+        <DialogContent>
+          <DialogContentText>确定要删除这个 Topic 吗？此操作不可撤销。</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmId(null)}>取消</Button>
+          <Button
+            color="error"
+            onClick={async () => {
+              if (!deleteConfirmId) return;
+              try {
+                await deleteTopic(deleteConfirmId);
+                if (selectedTopic?.id === deleteConfirmId) {
+                  onSelectTopic(null);
+                }
+                await loadTopics();
+              } catch (err) {
+                console.error('Delete topic failed:', err);
+              } finally {
+                setDeleteConfirmId(null);
+              }
+            }}
+          >
+            删除
+          </Button>
+        </DialogActions>
+      </Dialog>
     </aside>
   );
 }

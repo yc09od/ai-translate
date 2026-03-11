@@ -37,10 +37,14 @@
     *   提供gmail和hotmail的oauth登陆的callback router。
     *   oauth成功后，添加新用户如果需要。同时返回token和refresh token。
     *   callback方法重定向为前台的/login?token=xxx&refreshToken=yyy。
+*   **CORS 配置**：
+    *   允许的 HTTP methods：`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
+    *   前端 origin 通过 `.env` 的 `CORS_ORIGINS` 环境变量配置
 
 ### 2.3. 数据库
 *   **主数据库**: MongoDB
     *   **用途**: 存储用户数据、主题和翻译历史。
+    *   **Topic 排序**：`Topic` model 包含 `order` 字段（Number），新建 topic 时自动赋值为当前用户所有 topic 中最小 `order` 减 1（使新 topic 始终排在列表最前）。`GET /topics` 按 `order` 升序返回。
 *   **缓存数据库**: Redis
     *   **用途**: 缓存频繁访问的数据，例如用户会话信息或最近的翻译，以提高性能。
 

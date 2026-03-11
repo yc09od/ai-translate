@@ -51,7 +51,8 @@
 - 实现定时器驱动的后台 token 主动刷新：页面加载后启动定期检查（如每分钟轮询），当 access token 距过期时间低于阈值（如5分钟）时，自动续期，解决页面长时间打开但无操作时 token 静默过期的问题。
 
 ### 后端（服务器）
-- 提供 RESTful API
+- 提供 RESTful API，支持完整的 CRUD 操作（GET / POST / PUT / PATCH / DELETE）
+- Fastify CORS 配置允许的 HTTP methods：`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
 - 管理用户认证与会话
 - 提供 Google 和 Hotmail 的 OAuth 登录 callback 路由（`GET /oauth/{oauthProvider}/callback`）
 - **callback 处理逻辑**：收到 OAuth code → 向提供商换取用户信息 → 查找/创建用户（如不存在则新建）→ 同时签发 **JWT（access token）** 和 **refresh token** → redirect 到前台 `/login?token=xxx&refreshToken=yyy`
@@ -176,7 +177,8 @@
   - 显示 topic 过滤输入框（搜索框），用于筛选 topic 列表
   - 显示所有已有 topic 列表（根据搜索框内容过滤）
   - 每条 topic 条目最右侧有 delete icon button；点击后弹出确认 dialog，确认则调用 API 删除该 topic 并刷新列表
-  - 提供新增 topic 的入口
+  - **「新增 Topic」按钮位于 topic list 顶端**（搜索框正下方）
+  - topic 列表按 `order` 字段升序展示，新建的 topic 自动排在最前
   - topic list有最高高度，超过最高高度，需要展示滚动条
   - 设置 icon 保持可见，展开时整体向左平移
   - 设置 icon **左侧**显示当前登录用户名：取 email `@` 前半部分，若过长则用 `...` 截断

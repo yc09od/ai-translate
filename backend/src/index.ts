@@ -36,6 +36,7 @@ const server = Fastify({ logger: true })
 server.register(cors, {
   origin: CORS_ORIGINS,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 })
 
 // Swagger / OpenAPI
