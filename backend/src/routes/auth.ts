@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { findByEmail, createUser } from "../services/userService";
-import { setSession, deleteSession, setRefreshToken, deleteRefreshToken } from "../services/sessionStore";
+import { findByEmail, createUser, findById } from "../services/userService";
+import { setSession, deleteSession, setRefreshToken, getRefreshToken, deleteRefreshToken } from "../services/sessionStore";
 
 async function exchangeGoogleCode(
   code: string,
@@ -98,6 +98,70 @@ export async function authRoutes(fastify: FastifyInstance) {
       reply.setCookie("refreshToken", refreshToken, { ...cookieBase, httpOnly: true, maxAge: 2592000 });
 
       return reply.redirect(`${frontendUrl}/dashboard`);
+    },
+  );
+
+  // POST /auth/refresh — 用 refresh token 换取新 access token
+  fastify.post(
+    "/auth/refresh",
+    {
+      schema: {
+        tags: ["Auth"],
+        summary: "刷新 Access Token",
+        description: "使用 HttpOnly cookie 中的 refresh token 签发新的 access token。",
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+            },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const refreshToken = request.cookies?.refreshToken;
+      if (!refreshToken) {
+        return reply.status(401).send({ error: "No refresh token" });
+      }
+
+      let payload: { userId: string; type: string };
+      try {
+        payload = fastify.jwt.verify(refreshToken) as { userId: string; type: string };
+      } catch {
+        return reply.status(401).send({ error: "Invalid refresh token" });
+      }
+
+      if (payload.type !== "refresh") {
+        return reply.status(401).send({ error: "Invalid token type" });
+      }
+
+      const stored = await getRefreshToken(payload.userId);
+      if (!stored || stored !== refreshToken) {
+        return reply.status(401).send({ error: "Refresh token revoked" });
+      }
+
+      const user = await findById(payload.userId);
+      if (!user) {
+        return reply.status(401).send({ error: "User not found" });
+      }
+
+      const newToken = fastify.jwt.sign(
+        { userId: payload.userId, email: user.email, provider: user.provider },
+        { expiresIn: "1h" },
+      );
+      await setSession(payload.userId, { userId: payload.userId, email: user.email, provider: user.provider, refreshToken });
+
+      const isProd = process.env.NODE_ENV === "production";
+      reply.setCookie("token", newToken, {
+        sameSite: "strict",
+        secure: isProd,
+        path: "/",
+        httpOnly: false,
+        maxAge: 3600,
+      });
+
+      return { success: true };
     },
   );
 
