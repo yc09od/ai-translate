@@ -16,6 +16,9 @@ function OAuthCallbackHandler() {
       localStorage.setItem('token', token);
       localStorage.setItem('refreshToken', refreshToken);
       router.replace('/dashboard');
+    } else if (localStorage.getItem('token')) {
+      // [63] Already logged in → redirect to dashboard
+      router.replace('/dashboard');
     }
   }, [searchParams, router]);
 
