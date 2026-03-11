@@ -107,7 +107,7 @@
 -- [67] [x] API 端。token session storage同时要记录refresh token用来验证。
 -- [68] [x] APi添加路由，允许使用refresh token生成新token。
 -- [69] [x] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
--- [70] [ ] Api cros将前端添加入允许的origin。
+-- [70] [x] Api cros将前端添加入允许的origin。同时cros允许在env加入list。
 
 ## still think，do not do any item after this line
 

@@ -3,6 +3,7 @@ import { exec } from 'child_process'
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import fjwt from '@fastify/jwt'
 import fcookie from '@fastify/cookie'
+import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import mongoose from 'mongoose'
@@ -24,8 +25,17 @@ declare module 'fastify' {
 
 const PORT = parseInt(process.env.PORT || '8000', 10)
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  .split(',')
+  .map(o => o.trim())
 
 const server = Fastify({ logger: true })
+
+// CORS
+server.register(cors, {
+  origin: CORS_ORIGINS,
+  credentials: true,
+})
 
 // Swagger / OpenAPI
 server.register(swagger, {
