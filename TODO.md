@@ -104,7 +104,7 @@
 -- [66] [x] 前端 Login 页面解析 queryString 中的 token 和 refreshToken，存储到cookie,同时做好防护。
   -- [66.1] [x] 防 XSS：refreshToken cookie 设置 HttpOnly（通过 Next.js API route 服务端写入），JS 无法读取
   -- [66.2] [x] 防 CSRF：两个 cookie 均设置 SameSite=Strict，第三方站点请求不带 cookie
--- [67] [ ] token session storage同时要记录refresh token用来验证。
+-- [67] [x] API 端。token session storage同时要记录refresh token用来验证。
 -- [68] [ ] APi添加路由，允许使用refresh token生成新token。
 -- [69] [ ] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
 -- [70] [ ] Api cros将前端添加入允许的origin。

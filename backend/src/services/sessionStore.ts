@@ -7,6 +7,7 @@ export interface SessionData {
   userId: string
   email: string
   provider: string
+  refreshToken: string
 }
 
 function sessionKey(userId: string) { return `session:${userId}` }

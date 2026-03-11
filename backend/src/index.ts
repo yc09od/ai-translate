@@ -8,6 +8,7 @@ import swaggerUi from '@fastify/swagger-ui'
 import mongoose from 'mongoose'
 import { connectMongoDB } from './db/mongodb'
 import { redis, connectRedis } from './db/redis'
+import { getSession } from './services/sessionStore'
 import { authRoutes } from './routes/auth'
 import { topicRoutes } from './routes/topics'
 import { translationRoutes } from './routes/translations'
@@ -60,6 +61,11 @@ server.register(fjwt, { secret: JWT_SECRET })
 server.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()
+    const { userId } = request.user as { userId: string }
+    const session = await getSession(userId)
+    if (!session) {
+      return reply.status(401).send({ error: 'Session expired or invalidated' })
+    }
   } catch (err) {
     reply.send(err)
   }

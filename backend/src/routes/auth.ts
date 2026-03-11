@@ -89,7 +89,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         { userId, type: "refresh" },
         { expiresIn: "30d" },
       );
-      await setSession(userId, { userId, email, provider: "google" });
+      await setSession(userId, { userId, email, provider: "google", refreshToken });
       await setRefreshToken(userId, refreshToken);
 
       const isProd = process.env.NODE_ENV === "production";
