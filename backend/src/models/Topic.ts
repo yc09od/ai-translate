@@ -5,6 +5,7 @@ export interface ITopic extends Document {
   title: string
   sourceLang: string
   targetLang: string
+  order: number
   createdAt: Date
 }
 
@@ -14,6 +15,7 @@ const TopicSchema = new Schema<ITopic>(
     title: { type: String, required: true },
     sourceLang: { type: String, required: true },
     targetLang: { type: String, required: true },
+    order: { type: Number, required: true, default: 0 },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 )

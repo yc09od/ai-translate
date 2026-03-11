@@ -154,8 +154,8 @@
 
 ## Topic 排序
 
--- [94] [ ] 后端：Topic model 添加 `order` 字段（Number），`POST /topics` 新建时自动赋值为当前用户最小 order 减 1（使新 topic 排最前）
--- [95] [ ] 后端：`GET /topics` 路由改为按 `order` 升序返回 topic 列表
+-- [94] [x] 后端：Topic model 添加 `order` 字段（Number），`POST /topics` 新建时自动赋值为当前用户最小 order 减 1（使新 topic 排最前）
+-- [95] [x] 后端：`GET /topics` 路由改为按 `order` 升序返回 topic 列表
 -- [96] [ ] 前端 Sidebar：将「新增 Topic」按钮移至 topic list 顶端（搜索框正下方），topic 列表展示顺序与后端返回顺序一致
 
 ## pending things Start

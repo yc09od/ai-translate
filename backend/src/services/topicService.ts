@@ -7,11 +7,14 @@ export async function createTopic(data: {
   sourceLang: string
   targetLang: string
 }): Promise<ITopic> {
-  return Topic.create({ ...data, userId: new Types.ObjectId(data.userId) })
+  const uid = new Types.ObjectId(data.userId)
+  const minDoc = await Topic.findOne({ userId: uid }).sort({ order: 1 }).select('order')
+  const order = minDoc ? minDoc.order - 1 : 0
+  return Topic.create({ ...data, userId: uid, order })
 }
 
 export async function listTopics(userId: string): Promise<ITopic[]> {
-  return Topic.find({ userId: new Types.ObjectId(userId) }).sort({ createdAt: -1 })
+  return Topic.find({ userId: new Types.ObjectId(userId) }).sort({ order: 1 })
 }
 
 export async function deleteTopic(topicId: string, userId: string): Promise<boolean> {
