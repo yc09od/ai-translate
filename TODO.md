@@ -77,13 +77,26 @@
 -- [46] [x] 添加api 文档工具swagger
 -- [47] [x] 添加api dev 为 http://localhost:8000/oauth/google/callback, route 为/oauth/{oauthProvider}/callback，为了google oauth回调
 
--- [49] [x] `topicService` — CRUD 操作（创建/列表/删除话题）
--- [50] [x] `translationService` — 保存翻译记录、按 topicId 分页查询历史
+-- [48] [x] `topicService` — CRUD 操作（创建/列表/删除话题）
+-- [49] [x] `translationService` — 保存翻译记录、按 topicId 分页查询历史
 
 ### 基础设施
 
--- [48] [ ] 配置 `.env` — `MONGODB_URI`, `REDIS_URL`, `JWT_SECRET` 等环境变量
--- [49] [ ] 在 Fastify 注册插件时注入 DB 连接（使用 `fastify.decorate`）
+-- [50] [x] 配置 `.env` — `MONGODB_URI`, `REDIS_URL`, `JWT_SECRET` 等环境变量
+-- [51] [x] 在 Fastify 注册插件时注入 DB 连接（使用 `fastify.decorate`）
+
+## 登录页（/login）
+
+-- [52] [ ] 创建登录页路由 `/login`，整体布局为左右两栏全屏高度
+-- [53] [ ] 实现左侧渐变色背景 Container（纯装饰，无交互元素）
+-- [54] [ ] 实现右侧内容区垂直水平居中布局
+-- [55] [ ] 添加 App Title 标题，位于按钮上方
+-- [56] [ ] 实现 Gmail 登录按钮（左侧 Google SVG logo + 右侧文字 "Sign in with Gmail"）
+-- [57] [ ] 实现 Hotmail 登录按钮（左侧 Microsoft SVG logo + 右侧文字 "Sign in with Hotmail"）
+-- [58] [ ] 两个按钮样式统一（相同宽度，垂直排列，间距适中）
+-- [59] [ ] Gmail 按钮点击后触发 Google OAuth 登录流程
+-- [60] [ ] Hotmail 按钮点击后触发 Microsoft OAuth 登录流程
+-- [61] [ ] OAuth 登录成功后跳转至主页（/）
 
 ## still think，do not do any item after this line
 

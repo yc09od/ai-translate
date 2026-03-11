@@ -63,15 +63,6 @@
   5. 登出时删除 Redis session key
 - `userService` 的新用户创建**仅由 OAuth 回调触发**，不暴露独立的注册接口。
 
-google link = 
-https://accounts.google.com/o/oauth2/v2/auth?
-client_id=你的CLIENT_ID.apps.googleusercontent.com&
-redirect_uri=http://localhost:8000/oauth/google/callback&
-response_type=code&
-scope=openid%20email%20profile&
-access_type=offline&
-prompt=select_account
-
 ---
 
 ## 数据流（实时翻译请求）
@@ -105,6 +96,47 @@ prompt=select_account
 ---
 
 ## 页面排版设计
+
+### 登录页（/login）
+
+**整体布局：左右两栏，全屏高度**
+
+```
+┌──────────────────────┬──────────────────────┐
+│                      │                      │
+│   渐变色背景          │    居中内容区         │
+│   Container          │                      │
+│                      │   [App Title]        │
+│   （装饰性区域，      │                      │
+│    无交互元素）        │   ┌──────────────┐   │
+│                      │   │ G  Gmail 登录 │   │
+│                      │   └──────────────┘   │
+│                      │                      │
+│                      │   ┌──────────────┐   │
+│                      │   │ ⊞  Hotmail登录│   │
+│                      │   └──────────────┘   │
+│                      │                      │
+└──────────────────────┴──────────────────────┘
+```
+
+#### 左侧区域
+- **背景**：渐变色（如品牌色渐变，例如 `linear-gradient(135deg, #667eea, #764ba2)`）
+- 纯装饰性，无交互元素
+
+#### 右侧区域
+- **整体对齐**：内容垂直水平居中
+- **Title**：App 名称，位于按钮上方
+- **Gmail 登录按钮**：
+  - 左侧：Google logo（SVG icon）
+  - 右侧文字：`Sign in with Gmail`
+  - 样式：outlined 或 contained，白底/品牌色
+- **Hotmail 登录按钮**：
+  - 左侧：Microsoft logo（SVG icon）
+  - 右侧文字：`Sign in with Hotmail`
+  - 样式与 Gmail 按钮一致，保持视觉统一
+- 两个按钮宽度相同，垂直排列，间距适中
+
+---
 
 ### 主页（/）
 

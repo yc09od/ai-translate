@@ -4,12 +4,21 @@ import Fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import fjwt from '@fastify/jwt'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
+import mongoose from 'mongoose'
 import { connectMongoDB } from './db/mongodb'
-import { connectRedis } from './db/redis'
+import { redis, connectRedis } from './db/redis'
 import { authRoutes } from './routes/auth'
 import { topicRoutes } from './routes/topics'
 import { translationRoutes } from './routes/translations'
 import { systemRoutes } from './routes/system'
+
+// Fastify type augmentation for decorated DB instances
+declare module 'fastify' {
+  interface FastifyInstance {
+    mongoose: typeof mongoose
+    redis: typeof redis
+  }
+}
 
 const PORT = parseInt(process.env.PORT || '8000', 10)
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
@@ -62,6 +71,8 @@ const start = async () => {
   try {
     await connectMongoDB()
     await connectRedis()
+    server.decorate('mongoose', mongoose)
+    server.decorate('redis', redis)
     await server.listen({ port: PORT, host: '0.0.0.0' })
     if (process.env.NODE_ENV !== 'production') {
       exec(`start http://localhost:${PORT}/docs`)
