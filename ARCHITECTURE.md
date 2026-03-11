@@ -16,7 +16,9 @@
     *   向用户显示实时翻译结果。
     *   处理用户身份验证（Google/Hotmail 的 OAuth）。
     *   管理与主题和翻译历史相关的用户交互。
-
+    *   authGuard。当用户登录成功，跳转到/dashboard页面。当用户未登录，跳转到/login页面。
+    *   当login接到token和refresh token，记录，且实现当token快expire的时候，使用refresh token更新token。
+    
 ### 2.2. 后端 (服务器)
 *   **框架**: Node.js (使用 Fastify 等框架)
 *   **职责**:
@@ -31,6 +33,9 @@
     *   从 MongoDB 存储和检索主题和翻译历史数据。
     *   从 Redis 缓存最近的翻译记录。
     *   JWT session storage.
+    *   提供gmail和hotmail的oauth登陆的callback router。
+    *   oauth成功后，添加新用户如果需要。同时返回token和refresh token。
+    *   callback方法重定向为前台的/login?token=xxx&refreshToken=yyy。
 
 ### 2.3. 数据库
 *   **主数据库**: MongoDB

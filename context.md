@@ -40,10 +40,16 @@
 - 通过 WebRTC / WebSocket 将音频流发送至后端
 - 显示实时翻译结果
 - 处理 OAuth 登录、主题管理、历史查看
+- Login页面同时也承接跳转任务。当API oauth callback成功时，返回跳转到前台的/login页面且附带token和refreshToken作为queryString（`/login?token=xxx&refreshToken=yyy`），前端存储两者。
+- 实现authGuard：当用户登录成功，跳转到/dashboard页面；当用户未登录，跳转到/login页面。
+- 实现token自动续期：当access token即将过期时，使用refresh token调用后端接口换取新token。
 
 ### 后端（服务器）
 - 提供 RESTful API
 - 管理用户认证与会话
+- 提供 Google 和 Hotmail 的 OAuth 登录 callback 路由（`GET /oauth/{oauthProvider}/callback`）
+- **callback 处理逻辑**：收到 OAuth code → 向提供商换取用户信息 → 查找/创建用户（如不存在则新建）→ 同时签发 **JWT（access token）** 和 **refresh token** → redirect 到前台 `/login?token=xxx&refreshToken=yyy`
+- JWT（access token）和 refresh token 均存储于 Redis（各自含 TTL）
 - 翻译流程协调：
   1. 接收客户端音频
   2. 调用语音识别 API → 得到文本
@@ -53,14 +59,16 @@
 ### 用户认证（OAuth + JWT）
 
 - **不支持本地注册/密码**，用户只能通过 Google Gmail 或 Microsoft Hotmail 的 OAuth 登录。
-- **登录逻辑**：
-  1. 前端将 OAuth token 发给后端（`POST /auth/oauth`）
-  2. 后端向 OAuth 提供商验证 token，获取用户 email
-  3. 在 MongoDB 中查找该 email 的用户
-     - **已存在** → 直接签发本地 JWT
-     - **不存在** → 创建新 User 文档，再签发 JWT
-  4. JWT 存储于 Redis（含 TTL）作为 session
-  5. 登出时删除 Redis session key
+- **登录逻辑（server-side OAuth flow）**：
+  1. 用户点击登录按钮 → 前端跳转至 OAuth 提供商授权页
+  2. 提供商授权后回调后端 `GET /oauth/{provider}/callback`（携带 code）
+  3. 后端用 code 换取用户 email/name
+  4. 在 MongoDB 中查找该 email 的用户
+     - **已存在** → 直接签发 access token + refresh token
+     - **不存在** → 创建新 User 文档，再签发 access token + refresh token
+  5. access token 和 refresh token 均存入 Redis（各自含 TTL）
+  6. 后端 redirect 到前台 `/login?token=xxx&refreshToken=yyy`
+  7. 登出时删除 Redis 中对应的 session key
 - `userService` 的新用户创建**仅由 OAuth 回调触发**，不暴露独立的注册接口。
 
 ---

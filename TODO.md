@@ -97,12 +97,16 @@
 -- [59] [x] Gmail 按钮点击后触发 Google OAuth 登录流程
 -- [60] [x] Hotmail 按钮点击后触发 Microsoft OAuth 登录流程
 -- [61] [ ] OAuth 登录成功后跳转至主页（/）
+-- [62] [ ] Login 页面承接 OAuth callback 跳转：当后端 OAuth callback 成功后重定向到 /login?token=xxx，前端解析 queryString 中的 token 并存储登录态
+-- [63] [ ] 实现 authGuard：已登录用户访问任意页面自动跳转 /dashboard；未登录用户访问受保护页面自动跳转 /login
+-- [64] [ ] 后端 OAuth callback 路由（`/oauth/:provider/callback`）完整实现：收到 code → 换取用户 email/name → 查找或创建 User → 同时签发 access token 和 refresh token → redirect 到前台 `/login?token=xxx&refreshToken=yyy`
+-- [65] [ ] Redis session 扩展：同时存储 refresh token（独立 key，TTL 更长，如 30 天）
+-- [66] [ ] 前端 Login 页面解析 queryString 中的 token 和 refreshToken，存储到 localStorage 或 cookie
+-- [67] [ ] token session storage同时要记录refresh token用来验证。
+-- [68] [ ] APi添加路由，允许使用refresh token生成新token。
+-- [69] [ ] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
 
 ## still think，do not do any item after this line
-
-http://localhost:8000/oauth/google/callback
-
-777764662386-oe7j0cgba6k5i816o9qo6jv9l99nhd79.apps.googleusercontent.com
 
 -- 读取流
 我们需要api连续的读取音频流
@@ -111,12 +115,4 @@ http://localhost:8000/oauth/google/callback
 当api断句之后，应该把这一段buffer送给ai api翻译。
 当api得到ai api返回的译文，我们需要第一，保存这个结果，同时也发送这个结果给前台。
 前台要渲染这个结果
-
--- 储存历史
-我们需要api提供罗列topic list的能力
-我们需要api提供罗列topic history的能力
-
--- config
-我们需要api有读取env config的能力
-
 
