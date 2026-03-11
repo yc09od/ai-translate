@@ -1,6 +1,26 @@
 'use client';
 
 import { Box, Button, Typography } from '@mui/material';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, Suspense } from 'react';
+
+// [61][62] Handle OAuth callback: parse token+refreshToken from URL, store, redirect
+function OAuthCallbackHandler() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refreshToken');
+    if (token && refreshToken) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('refreshToken', refreshToken);
+      router.replace('/dashboard');
+    }
+  }, [searchParams, router]);
+
+  return null;
+}
 
 // [56] Google SVG logo
 function GoogleLogo() {
@@ -41,6 +61,10 @@ function handleHotmailLogin() {
 
 export default function LoginPage() {
   return (
+    <>
+      <Suspense>
+        <OAuthCallbackHandler />
+      </Suspense>
     <Box
       sx={{
         display: 'flex',
@@ -129,5 +153,6 @@ export default function LoginPage() {
         </Box>
       </Box>
     </Box>
+    </>
   );
 }
