@@ -123,6 +123,11 @@
 -- [79] [x] 前端：User Profile 页面提供关闭/返回操作，回到原 Main Panel 视图。
 -- [80] [x] 后端：提供用户名更新接口（如 `PATCH /users/me`），更新 MongoDB 中 User 文档的 `name` 字段。
 
+## 响应式布局
+
+-- [81] [x] 前端：当屏幕宽度小于 768px 时，左侧 nav bar 展开状态宽度为全屏（100vw），覆盖 main panel。
+-- [82] [x] 前端：当屏幕宽度小于 768px 时，setting button group 向**左上方**展开（anchorOrigin / transformOrigin 调整）。
+
 ## still think，do not do any item after this line
 
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -75,12 +76,19 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const [filter, setFilter] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
+  const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
+
+  const sidebarWidth = expanded ? (isMobile ? '100vw' : 240) : 56;
 
   return (
     <aside
       className="flex h-screen flex-col justify-between bg-indigo-600 py-2 transition-all duration-300 overflow-x-hidden"
-      style={{ width: expanded ? 240 : 56, alignItems: 'center' }}
+      style={{
+        width: sidebarWidth,
+        alignItems: 'center',
+        ...(isMobile && expanded ? { position: 'fixed', top: 0, left: 0, zIndex: 1200, height: '100vh' } : {}),
+      }}
     >
       {/* 上半部分：标题栏 + topic 列表 */}
       <div className="flex flex-col w-full" style={{ flex: 1, overflow: 'hidden' }}>
@@ -213,13 +221,13 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
           <SettingsIcon />
         </IconButton>
 
-        {/* 设置菜单，向右上方展开 */}
+        {/* 设置菜单：大屏向右上方展开，小屏向左上方展开 */}
         <Menu
           anchorEl={menuAnchor}
           open={Boolean(menuAnchor)}
           onClose={() => setMenuAnchor(null)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          anchorOrigin={{ vertical: 'top', horizontal: isMobile ? 'left' : 'right' }}
+          transformOrigin={{ vertical: 'bottom', horizontal: isMobile ? 'right' : 'left' }}
         >
           <MenuItem
             onClick={() => {
