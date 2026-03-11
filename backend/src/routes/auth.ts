@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { findByEmail, createUser } from "../services/userService";
-import { setSession, deleteSession } from "../services/sessionStore";
+import { setSession, deleteSession, setRefreshToken, deleteRefreshToken } from "../services/sessionStore";
 
 async function exchangeGoogleCode(
   code: string,
@@ -83,11 +83,16 @@ export async function authRoutes(fastify: FastifyInstance) {
       const userId = (user._id as { toString(): string }).toString();
       const token = fastify.jwt.sign(
         { userId, email, provider: "google" },
-        { expiresIn: "7d" },
+        { expiresIn: "1h" },
+      );
+      const refreshToken = fastify.jwt.sign(
+        { userId, type: "refresh" },
+        { expiresIn: "30d" },
       );
       await setSession(userId, { userId, email, provider: "google" });
+      await setRefreshToken(userId, refreshToken);
 
-      return reply.redirect(`${frontendUrl}/auth/callback?token=${token}`);
+      return reply.redirect(`${frontendUrl}/login?token=${token}&refreshToken=${refreshToken}`);
     },
   );
 
@@ -114,6 +119,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest) => {
       const user = request.user as { userId: string };
       await deleteSession(user.userId);
+      await deleteRefreshToken(user.userId);
       return { success: true };
     },
   );
