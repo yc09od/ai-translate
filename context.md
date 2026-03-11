@@ -63,6 +63,15 @@
   5. 登出时删除 Redis session key
 - `userService` 的新用户创建**仅由 OAuth 回调触发**，不暴露独立的注册接口。
 
+google link = 
+https://accounts.google.com/o/oauth2/v2/auth?
+client_id=你的CLIENT_ID.apps.googleusercontent.com&
+redirect_uri=http://localhost:8000/oauth/google/callback&
+response_type=code&
+scope=openid%20email%20profile&
+access_type=offline&
+prompt=select_account
+
 ---
 
 ## 数据流（实时翻译请求）

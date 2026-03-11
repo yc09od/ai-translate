@@ -7,6 +7,9 @@ import swaggerUi from '@fastify/swagger-ui'
 import { connectMongoDB } from './db/mongodb'
 import { connectRedis } from './db/redis'
 import { authRoutes } from './routes/auth'
+import { topicRoutes } from './routes/topics'
+import { translationRoutes } from './routes/translations'
+import { systemRoutes } from './routes/system'
 
 const PORT = parseInt(process.env.PORT || '8000', 10)
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
@@ -50,25 +53,10 @@ server.decorate('authenticate', async function (request: FastifyRequest, reply: 
 })
 
 // Routes
-server.get('/health', {
-  schema: {
-    tags: ['System'],
-    summary: 'Health check',
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          status: { type: 'string' },
-          message: { type: 'string' },
-        },
-      },
-    },
-  },
-}, async () => {
-  return { status: 'ok', message: 'Backend is running' }
-})
-
+server.register(systemRoutes)
 server.register(authRoutes)
+server.register(topicRoutes)
+server.register(translationRoutes)
 
 const start = async () => {
   try {

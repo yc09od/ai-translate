@@ -77,8 +77,8 @@
 -- [46] [x] 添加api 文档工具swagger
 -- [47] [x] 添加api dev 为 http://localhost:8000/oauth/google/callback, route 为/oauth/{oauthProvider}/callback，为了google oauth回调
 
--- [49] [ ] `topicService` — CRUD 操作（创建/列表/删除话题）
--- [50] [ ] `translationService` — 保存翻译记录、按 topicId 分页查询历史
+-- [49] [x] `topicService` — CRUD 操作（创建/列表/删除话题）
+-- [50] [x] `translationService` — 保存翻译记录、按 topicId 分页查询历史
 
 ### 基础设施
 
