@@ -13,6 +13,7 @@ import { getSession } from './services/sessionStore'
 import { authRoutes } from './routes/auth'
 import { topicRoutes } from './routes/topics'
 import { translationRoutes } from './routes/translations'
+import { userRoutes } from './routes/users'
 import { systemRoutes } from './routes/system'
 
 // Fastify type augmentation for decorated DB instances
@@ -86,6 +87,7 @@ server.register(systemRoutes)
 server.register(authRoutes)
 server.register(topicRoutes)
 server.register(translationRoutes)
+server.register(userRoutes)
 
 const start = async () => {
   try {

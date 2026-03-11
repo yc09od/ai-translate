@@ -10,6 +10,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddIcon from '@mui/icons-material/Add';
 import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { logoutUser } from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
 import type { RootState } from '@/lib/store/store';
@@ -65,9 +66,10 @@ function getUsernameFromCookie(): string {
 interface SidebarProps {
   selectedTopic: string | null;
   onSelectTopic: (topic: string) => void;
+  onOpenUserProfile: () => void;
 }
 
-export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) {
+export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfile }: SidebarProps) {
   const dispatch = useDispatch();
   const expanded = useSelector((state: RootState) => state.sidebar.expanded);
   const [filter, setFilter] = useState('');
@@ -219,6 +221,15 @@ export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) 
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
           transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         >
+          <MenuItem
+            onClick={() => {
+              setMenuAnchor(null);
+              onOpenUserProfile();
+            }}
+          >
+            <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
+            User Profile
+          </MenuItem>
           <MenuItem
             onClick={async () => {
               setMenuAnchor(null);

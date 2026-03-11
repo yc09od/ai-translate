@@ -15,3 +15,7 @@ export async function createUser(data: {
 }): Promise<IUser> {
   return User.create(data)
 }
+
+export async function updateUserName(userId: string, name: string): Promise<IUser | null> {
+  return User.findByIdAndUpdate(userId, { name }, { new: true })
+}
