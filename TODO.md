@@ -129,7 +129,7 @@
 -- [82] [x] 前端：当屏幕宽度小于 768px 时，setting button group 向**左上方**展开（anchorOrigin / transformOrigin 调整）。
 
 ## still think，do not do any item after this line
-
+着手前端get和添加topic功能。当点击添加topic，添加topic按钮应该变成可输入的input。且在最右侧添加submit和cancel按钮。当点击其他地方使input lost focus。应视为点击cancel按钮。
 
 -- 读取流
 我们需要api连续的读取音频流
