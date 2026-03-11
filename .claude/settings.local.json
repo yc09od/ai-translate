@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\horst\\\\.claude\\\\projects\\\\c--projects-ai-translate\\\\memory\"\" 2>/dev/null || echo \"Directory does not exist \")",
+      "Bash(xargs grep:*)",
+      "Bash(ls c:/projects/ai-translate/*.md)"
+    ]
+  }
+}

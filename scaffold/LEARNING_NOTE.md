@@ -5,3 +5,5 @@
 3. 尽量用ai agent来更新md文件。告诉agent你的想法，要求他更新相应的文件。
 
 4. 个人经历：当有想法时候，先更新README.md和PRD.md文件。当要具体编程时候，有了想法尽量先更新ARCHITECTURE.md。尽量让agent去同步CONTEXT.md。TODO.md尽量自己编写。
+
+5. 个人经历: 有些程序化的事情可以添加custom skill，比如 plan-todo。每次有新的想法或者设计。都需要告诉ai agent 如何更新架构和CONTEXT文件。并且在最后添加TODO.md。这个时候，把这个工作流程存成skill模板可以减少输入，且要求规范化。

@@ -111,4 +111,16 @@ client.interceptors.response.use(
   }
 );
 
+// [83] Get topics for current user
+export async function getTopics(): Promise<{ id: string; title: string; sourceLang: string; targetLang: string; createdAt: string }[]> {
+  const res = await client.get('/topics');
+  return res.data;
+}
+
+// [84] Create a new topic
+export async function createTopic(title: string): Promise<{ id: string; title: string }> {
+  const res = await client.post('/topics', { title, sourceLang: 'en', targetLang: 'zh' });
+  return res.data;
+}
+
 export default client;

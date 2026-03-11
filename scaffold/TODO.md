@@ -128,9 +128,27 @@
 -- [81] [x] 前端：当屏幕宽度小于 768px 时，左侧 nav bar 展开状态宽度为全屏（100vw），覆盖 main panel。
 -- [82] [x] 前端：当屏幕宽度小于 768px 时，setting button group 向**左上方**展开（anchorOrigin / transformOrigin 调整）。
 
-## still think，do not do any item after this line
-着手前端get和添加topic功能。当点击添加topic，添加topic按钮应该变成可输入的input。且在最右侧添加submit和cancel按钮。当点击其他地方使input lost focus。应视为点击cancel按钮。
+## Topic 功能
 
+-- [83] [x] 前端 apiClient：添加 `getTopics()` 函数，调用 `GET /topics` 获取当前用户的 topic 列表。
+-- [84] [x] 前端 apiClient：添加 `createTopic(title)` 函数，调用 `POST /topics` 创建新 topic（sourceLang 默认 'en'，targetLang 默认 'zh'）。
+-- [85] [x] 前端 Sidebar：移除 MOCK_TOPICS，改为通过 `getTopics()` 从后端加载真实数据。组件挂载时自动请求，创建成功后刷新。
+-- [86] [x] 前端 Sidebar：实现「新增 Topic」内联输入交互：点击按钮后变形为 input + Submit/Cancel 按钮；点击 Cancel 或 input blur 时恢复按钮状态；防止 blur 先于 click 触发导致误取消。
+-- [87] [ ] 修复前端 Sidebar：topic 选中高亮逻辑改用 `_id` 而非 `title` 作为唯一标识，避免同名 topic 同时高亮。
+-- [88] [ ] 前端 apiClient：添加 `deleteTopic(id)` 函数，调用 `DELETE /topics/:id`。
+-- [89] [ ] 前端 Sidebar：每个 topic 条目右侧添加 delete icon button，点击后弹出确认 dialog；确认后调用 `deleteTopic(id)` 并刷新 topic 列表。
+
+## 品牌与网站标识
+
+-- [90] [ ] 更新网站名字：修改 `frontend/app/layout.tsx` 中的 `metadata.title`，同时更新登录页 App Title 显示文字。
+-- [91] [ ] 替换网站 favicon：将新图标文件放入 `frontend/app/` 或 `frontend/public/`，替换默认 `favicon.ico`。
+
+
+## pending things Start
+
+## pending things End
+
+## still think，do not do any item after this line
 -- 读取流
 我们需要api连续的读取音频流
 我们需要api来给音频流做断句。

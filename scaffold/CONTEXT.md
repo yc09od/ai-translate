@@ -4,6 +4,11 @@
 
 这是一个基于 Web 的 AI 实时翻译应用，利用浏览器麦克风捕捉音频，并在中英文之间进行实时翻译。支持主题管理、翻译历史记录，以及 Google / Hotmail OAuth 登录。
 
+## 品牌与网站标识
+
+- **网站名字**：待确认（需更新 `frontend/app/layout.tsx` 中的 `<title>` 和 `metadata.title`，以及登录页的 App Title 显示文字）
+- **网站图标（favicon）**：待替换（Next.js 默认放在 `frontend/app/favicon.ico` 或 `frontend/public/favicon.ico`）
+
 ---
 
 ## 核心功能
@@ -169,6 +174,7 @@
   - 展开 icon 变为缩小 icon（点击后收起）
   - 显示 topic 过滤输入框（搜索框），用于筛选 topic 列表
   - 显示所有已有 topic 列表（根据搜索框内容过滤）
+  - 每条 topic 条目最右侧有 delete icon button；点击后弹出确认 dialog，确认则调用 API 删除该 topic 并刷新列表
   - 提供新增 topic 的入口
   - topic list有最高高度，超过最高高度，需要展示滚动条
   - 设置 icon 保持可见，展开时整体向左平移

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import IconButton from '@mui/material/IconButton';
@@ -10,46 +10,18 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { logoutUser } from '@/lib/apiClient';
+import { logoutUser, getTopics, createTopic } from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
 import type { RootState } from '@/lib/store/store';
 
-const MOCK_TOPICS = [
-  'cosc1908 课程',
-  '商务会议',
-  '旅行对话',
-  '医疗问诊',
-  '法律咨询',
-  '技术面试',
-  '日常闲聊',
-  '新闻播报',
-  '学术报告',
-  '餐厅点餐',
-  '机场对话',
-  '酒店入住',
-  '购物指南',
-  '银行开户',
-  '租房谈判',
-  '健身教练',
-  '博物馆导览',
-  '电影讨论',
-  '体育赛事',
-  '天气预报',
-  '交通问路',
-  '紧急求助',
-  '邮局寄件',
-  '图书馆借书',
-  '药店买药',
-  '理发店预约',
-  '汽车修理',
-  '网购客服',
-  '学校家长会',
-  '职场晋升',
-  '创业融资',
-  '移民咨询',
-];
+interface Topic {
+  id: string;
+  title: string;
+}
 
 function getUsernameFromCookie(): string {
   if (typeof document === 'undefined') return '';
@@ -75,9 +47,64 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const expanded = useSelector((state: RootState) => state.sidebar.expanded);
   const [filter, setFilter] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [newTopicTitle, setNewTopicTitle] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cancelBlurRef = useRef(false);
 
   const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
+
+  async function loadTopics() {
+    try {
+      const data = await getTopics();
+      setTopics(data.map((t) => ({ id: t.id, title: t.title })));
+    } catch {
+      // silently fail if not authenticated yet
+    }
+  }
+
+  useEffect(() => {
+    if (expanded) loadTopics();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded]);
+
+  function startAdding() {
+    setAdding(true);
+    setNewTopicTitle('');
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  function cancelAdding() {
+    setAdding(false);
+    setNewTopicTitle('');
+  }
+
+  async function submitTopic() {
+    const title = newTopicTitle.trim();
+    if (!title) return;
+    setSubmitting(true);
+    try {
+      await createTopic(title);
+      await loadTopics();
+      setAdding(false);
+      setNewTopicTitle('');
+    } catch {
+      // keep input open on error
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleInputBlur() {
+    if (cancelBlurRef.current) {
+      cancelBlurRef.current = false;
+      return;
+    }
+    cancelAdding();
+  }
 
   const sidebarWidth = expanded ? (isMobile ? '100vw' : 240) : 56;
 
@@ -140,14 +167,14 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
 
             {/* 可滚动的 topic 列表，最高 80vh 减去 filter input 高度 */}
             <div className="sidebar-scroll" style={{ maxHeight: 'calc(80vh - 50px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
-              {MOCK_TOPICS.filter((t) => t.includes(filter)).map((topic) => (
+              {topics.filter((t) => t.title.includes(filter)).map((topic) => (
                 <button
-                  key={topic}
-                  onClick={() => onSelectTopic(topic)}
+                  key={topic.id}
+                  onClick={() => onSelectTopic(topic.title)}
                   style={{
                     color: 'white',
-                    background: selectedTopic === topic ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
-                    border: selectedTopic === topic ? '1px solid rgba(255,255,255,0.6)' : 'none',
+                    background: selectedTopic === topic.title ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
+                    border: selectedTopic === topic.title ? '1px solid rgba(255,255,255,0.6)' : 'none',
                     borderRadius: '6px',
                     padding: '8px 10px',
                     textAlign: 'left',
@@ -159,31 +186,77 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
                     flexShrink: 0,
                   }}
                 >
-                  {topic}
+                  {topic.title}
                 </button>
               ))}
             </div>
 
-            {/* 新增 topic 入口 */}
-            <button
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                color: 'rgba(255,255,255,0.7)',
-                background: 'none',
-                border: '1px dashed rgba(255,255,255,0.4)',
-                borderRadius: '6px',
-                padding: '8px 10px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                marginTop: '4px',
-                flexShrink: 0,
-              }}
-            >
-              <AddIcon fontSize="small" />
-              新增 Topic
-            </button>
+            {/* [86] 新增 topic 入口：点击后变形为 input + submit/cancel */}
+            {adding ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Topic 名称..."
+                  value={newTopicTitle}
+                  onChange={(e) => setNewTopicTitle(e.target.value)}
+                  onBlur={handleInputBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') submitTopic();
+                    if (e.key === 'Escape') cancelAdding();
+                  }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.15)',
+                    border: '1px solid rgba(255,255,255,0.5)',
+                    borderRadius: '6px',
+                    color: 'white',
+                    fontSize: '13px',
+                    outline: 'none',
+                    padding: '6px 8px',
+                    minWidth: 0,
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  disabled={submitting}
+                  onMouseDown={() => { cancelBlurRef.current = true; }}
+                  onClick={submitTopic}
+                  sx={{ color: 'rgba(255,255,255,0.9)', padding: '2px', flexShrink: 0 }}
+                >
+                  <CheckIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onMouseDown={() => { cancelBlurRef.current = true; }}
+                  onClick={cancelAdding}
+                  sx={{ color: 'rgba(255,255,255,0.7)', padding: '2px', flexShrink: 0 }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            ) : (
+              <button
+                onClick={startAdding}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: 'rgba(255,255,255,0.7)',
+                  background: 'none',
+                  border: '1px dashed rgba(255,255,255,0.4)',
+                  borderRadius: '6px',
+                  padding: '8px 10px',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  marginTop: '4px',
+                  flexShrink: 0,
+                }}
+              >
+                <AddIcon fontSize="small" />
+                新增 Topic
+              </button>
+            )}
           </div>
         )}
       </div>
