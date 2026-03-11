@@ -91,11 +91,11 @@
 -- [53] [x] 实现左侧渐变色背景 Container（纯装饰，无交互元素）
 -- [54] [x] 实现右侧内容区垂直水平居中布局
 -- [55] [x] 添加 App Title 标题，位于按钮上方
--- [56] [ ] 实现 Gmail 登录按钮（左侧 Google SVG logo + 右侧文字 "Sign in with Gmail"）
--- [57] [ ] 实现 Hotmail 登录按钮（左侧 Microsoft SVG logo + 右侧文字 "Sign in with Hotmail"）
--- [58] [ ] 两个按钮样式统一（相同宽度，垂直排列，间距适中）
--- [59] [ ] Gmail 按钮点击后触发 Google OAuth 登录流程
--- [60] [ ] Hotmail 按钮点击后触发 Microsoft OAuth 登录流程
+-- [56] [x] 实现 Gmail 登录按钮（左侧 Google SVG logo + 右侧文字 "Sign in with Gmail"）
+-- [57] [x] 实现 Hotmail 登录按钮（左侧 Microsoft SVG logo + 右侧文字 "Sign in with Hotmail"）
+-- [58] [x] 两个按钮样式统一（相同宽度，垂直排列，间距适中）
+-- [59] [x] Gmail 按钮点击后触发 Google OAuth 登录流程
+-- [60] [x] Hotmail 按钮点击后触发 Microsoft OAuth 登录流程
 -- [61] [ ] OAuth 登录成功后跳转至主页（/）
 
 ## still think，do not do any item after this line
