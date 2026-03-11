@@ -1,8 +1,12 @@
 'use client';
 
 // [63] AuthGuard: redirects unauthenticated users to /login
+// [92] Proactive token refresh timer: checks every minute, refreshes if expiring within threshold
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { isExpiringSoon, refreshAccessToken } from '@/lib/apiClient';
+
+const TOKEN_CHECK_INTERVAL_MS = 60_000; // 1 minute
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,6 +21,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       setChecked(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!checked) return;
+    const id = setInterval(async () => {
+      if (isExpiringSoon()) {
+        await refreshAccessToken();
+      }
+    }, TOKEN_CHECK_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [checked]);
 
   if (!checked) return null;
   return <>{children}</>;

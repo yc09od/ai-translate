@@ -29,7 +29,7 @@ function getTokenExpiry(): number | null {
   }
 }
 
-function isExpiringSoon(): boolean {
+export function isExpiringSoon(): boolean {
   const exp = getTokenExpiry();
   if (exp === null) return false;
   return exp - Math.floor(Date.now() / 1000) < REFRESH_THRESHOLD_SECONDS;
@@ -50,7 +50,7 @@ export async function logoutUser(): Promise<void> {
   window.location.replace('/login');
 }
 
-async function refreshAccessToken(): Promise<boolean> {
+export async function refreshAccessToken(): Promise<boolean> {
   try {
     await axios.post(`${API_URL}/auth/refresh`, null, { withCredentials: true });
     return true;
