@@ -1,6 +1,7 @@
 # environment variables
 .env
 .env.*
+
 node_modules
 
 # misc
@@ -8,3 +9,6 @@ node_modules
 
 # OS
 Thumbs.db
+
+#ai
+.claude/
