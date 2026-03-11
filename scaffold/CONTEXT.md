@@ -48,6 +48,7 @@
 - Login页面同时也承接跳转任务。当API oauth callback成功时，返回跳转到前台的/login页面且附带token和refreshToken作为queryString（`/login?token=xxx&refreshToken=yyy`），前端存储两者。
 - 实现authGuard：当用户登录成功，跳转到/dashboard页面；当用户未登录，跳转到/login页面。
 - 实现token自动续期：当access token即将过期时，使用refresh token调用后端接口换取新token。
+- 实现定时器驱动的后台 token 主动刷新：页面加载后启动定期检查（如每分钟轮询），当 access token 距过期时间低于阈值（如5分钟）时，自动续期，解决页面长时间打开但无操作时 token 静默过期的问题。
 
 ### 后端（服务器）
 - 提供 RESTful API

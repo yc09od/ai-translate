@@ -18,6 +18,7 @@
     *   管理与主题和翻译历史相关的用户交互。
     *   authGuard。当用户登录成功，跳转到/dashboard页面。当用户未登录，跳转到/login页面。
     *   当login接到token和refresh token，记录，且实现当token快expire的时候，使用refresh token更新token。
+    *   **后台 token 定时刷新**：页面加载后启动定时器（如每分钟），检查 access token 距过期时间是否低于阈值（如5分钟），若是则主动用 refresh token 换取新 token，解决页面长时间打开但无操作时 token 静默过期的问题。
     
 ### 2.2. 后端 (服务器)
 *   **框架**: Node.js (使用 Fastify 等框架)

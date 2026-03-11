@@ -5,15 +5,19 @@ description: 读取 TODO.md 中 pending things 区域的待办事项或设计，
 
 你是这个项目的技术规划助手。当用户调用此 skill 时，按以下步骤执行：
 
-## 步骤 1：读取 pending things
+## 步骤 1：确定内容来源
 
-读取 `scaffold/TODO.md` 中 `## pending things Start` 和 `## pending things End` 之间的内容。
+读取 `scaffold/TODO.md` 中 `## pending things Start` 和 `## pending things End` 之间的内容，同时检查调用时是否传入了参数（`ARGUMENTS` 字段）。
 
-如果该区域为空，告知用户没有待处理的内容，停止执行。
+将两者**合并**作为本次处理的输入：
+- pending things 有内容、有参数 → 合并两者，一并处理
+- pending things 有内容、无参数 → 仅处理 pending things
+- pending things 为空、有参数 → 仅处理参数
+- pending things 为空、无参数 → 告知用户没有待处理的内容，停止执行
 
 ## 步骤 2：分析内容
 
-仔细理解 pending things 中的每一项，判断其性质：
+仔细理解输入内容中的每一项，判断其性质：
 - **架构相关**：新的组件、服务、数据流、API 设计、技术选型等 → 需要更新 ARCHITECTURE.md
 - **功能/上下文相关**：新功能描述、用户交互设计、页面布局等 → 需要更新 context.md
 - **两者都需要**：同时更新两个文件

@@ -144,6 +144,10 @@
 -- [91] [ ] 替换网站 favicon：将新图标文件放入 `frontend/app/` 或 `frontend/public/`，替换默认 `favicon.ico`。
 
 
+## Token 后台保活
+
+-- [92] [ ] 前端：实现定时器驱动的 token 主动续期——页面加载后启动定期检查（每分钟），当 access token 距过期时间低于阈值（如5分钟）时，自动用 refresh token 换取新 token，解决页面长时间打开但无操作时 token 静默过期的问题
+
 ## pending things Start
 
 ## pending things End
@@ -156,4 +160,8 @@
 当api断句之后，应该把这一段buffer送给ai api翻译。
 当api得到ai api返回的译文，我们需要第一，保存这个结果，同时也发送这个结果给前台。
 前台要渲染这个结果
+
+本地向量化FastEmbed
+
+
 
