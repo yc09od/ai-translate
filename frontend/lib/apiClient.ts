@@ -123,4 +123,9 @@ export async function createTopic(title: string): Promise<{ id: string; title: s
   return res.data;
 }
 
+// [88] Delete a topic by id
+export async function deleteTopic(id: string): Promise<void> {
+  await client.delete(`/topics/${id}`);
+}
+
 export default client;

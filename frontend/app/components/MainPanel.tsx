@@ -6,7 +6,7 @@ import TranslationList from './TranslationList';
 import BottomInputBar from './BottomInputBar';
 
 interface MainPanelProps {
-  selectedTopic: string | null;
+  selectedTopic: { id: string; title: string } | null;
 }
 
 interface TranslationPair {

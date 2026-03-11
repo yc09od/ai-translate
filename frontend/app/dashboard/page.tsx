@@ -9,7 +9,7 @@ import UserProfilePanel from '../components/UserProfilePanel';
 type View = 'main' | 'userProfile';
 
 export default function Home() {
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<{ id: string; title: string } | null>(null);
   const [view, setView] = useState<View>('main');
 
   return (

@@ -37,8 +37,8 @@ function getUsernameFromCookie(): string {
 }
 
 interface SidebarProps {
-  selectedTopic: string | null;
-  onSelectTopic: (topic: string) => void;
+  selectedTopic: { id: string; title: string } | null;
+  onSelectTopic: (topic: { id: string; title: string }) => void;
   onOpenUserProfile: () => void;
 }
 
@@ -170,11 +170,11 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
               {topics.filter((t) => t.title.includes(filter)).map((topic) => (
                 <button
                   key={topic.id}
-                  onClick={() => onSelectTopic(topic.title)}
+                  onClick={() => onSelectTopic({ id: topic.id, title: topic.title })}
                   style={{
                     color: 'white',
-                    background: selectedTopic === topic.title ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
-                    border: selectedTopic === topic.title ? '1px solid rgba(255,255,255,0.6)' : 'none',
+                    background: selectedTopic?.id === topic.id ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
+                    border: selectedTopic?.id === topic.id ? '1px solid rgba(255,255,255,0.6)' : 'none',
                     borderRadius: '6px',
                     padding: '8px 10px',
                     textAlign: 'left',

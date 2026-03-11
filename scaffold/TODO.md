@@ -134,8 +134,8 @@
 -- [84] [x] 前端 apiClient：添加 `createTopic(title)` 函数，调用 `POST /topics` 创建新 topic（sourceLang 默认 'en'，targetLang 默认 'zh'）。
 -- [85] [x] 前端 Sidebar：移除 MOCK_TOPICS，改为通过 `getTopics()` 从后端加载真实数据。组件挂载时自动请求，创建成功后刷新。
 -- [86] [x] 前端 Sidebar：实现「新增 Topic」内联输入交互：点击按钮后变形为 input + Submit/Cancel 按钮；点击 Cancel 或 input blur 时恢复按钮状态；防止 blur 先于 click 触发导致误取消。
--- [87] [ ] 修复前端 Sidebar：topic 选中高亮逻辑改用 `_id` 而非 `title` 作为唯一标识，避免同名 topic 同时高亮。
--- [88] [ ] 前端 apiClient：添加 `deleteTopic(id)` 函数，调用 `DELETE /topics/:id`。
+-- [87] [x] 修复前端 Sidebar：topic 选中高亮逻辑改用 `_id` 而非 `title` 作为唯一标识，避免同名 topic 同时高亮。
+-- [88] [x] 前端 apiClient：添加 `deleteTopic(id)` 函数，调用 `DELETE /topics/:id`。
 -- [89] [ ] 前端 Sidebar：每个 topic 条目右侧添加 delete icon button，点击后弹出确认 dialog；确认后调用 `deleteTopic(id)` 并刷新 topic 列表。
 
 ## 品牌与网站标识
