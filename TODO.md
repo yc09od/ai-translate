@@ -106,11 +106,12 @@
   -- [66.2] [x] 防 CSRF：两个 cookie 均设置 SameSite=Strict，第三方站点请求不带 cookie
 -- [67] [x] API 端。token session storage同时要记录refresh token用来验证。
 -- [68] [x] APi添加路由，允许使用refresh token生成新token。
--- [69] [ ] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
+-- [69] [x] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
 -- [70] [ ] Api cros将前端添加入允许的origin。
 
 ## still think，do not do any item after this line
 
+如果token invalid，那么将refresh，如果refresh invalid，那么logout。
 前端需要有logout button
 前端login之后要能得到当前用户信息
 
