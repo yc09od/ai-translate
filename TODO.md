@@ -108,9 +108,12 @@
 -- [68] [x] APi添加路由，允许使用refresh token生成新token。
 -- [69] [x] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
 -- [70] [x] Api cros将前端添加入允许的origin。同时cros允许在env加入list。
--- [71] [ ] 前端：在 setting button 左边显示当前登录用户名。取 email @ 符号前半部分作为显示名；若名字过长则用省略号（...）截断。
--- [72] [ ] 前端：点击 setting button 弹出 button group，以 setting button 为锚点向右上方展开。
--- [73] [ ] 前端：setting button group 中添加 Logout 选项，点击后清除 token cookie、调用后端 POST /auth/logout、跳转到 /login。
+-- [71] [x] 前端：在 setting button 左边显示当前登录用户名。取 email @ 符号前半部分作为显示名；若名字过长则用省略号（...）截断。
+-- [72] [x] 前端：点击 setting button 弹出 button group，以 setting button 为锚点向右上方展开。
+-- [73] [x] 前端：setting button group 中添加 Logout 选项，点击后清除 token cookie、调用后端 POST /auth/logout、跳转到 /login。
+-- [74] [x] 前端：GUI 用户名显示文字向左对齐。
+-- [75] [x] 前端：左侧 nav bar 默认状态为展开，且 nav bar 的展开/收起状态存入 Redux 并持久化到本地（localStorage）。
+
 
 ## still think，do not do any item after this line
 

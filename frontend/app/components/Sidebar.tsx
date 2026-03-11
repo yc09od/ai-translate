@@ -1,11 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddIcon from '@mui/icons-material/Add';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { logoutUser } from '@/lib/apiClient';
+import { toggleSidebar } from '@/lib/store/sidebarSlice';
+import type { RootState } from '@/lib/store/store';
 
 const MOCK_TOPICS = [
   'cosc1908 课程',
@@ -42,14 +49,31 @@ const MOCK_TOPICS = [
   '移民咨询',
 ];
 
+function getUsernameFromCookie(): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(/(?:^|; )token=([^;]*)/);
+  if (!match) return '';
+  try {
+    const payload = JSON.parse(atob(decodeURIComponent(match[1]).split('.')[1]));
+    const email: string = payload.email ?? '';
+    return email.split('@')[0];
+  } catch {
+    return '';
+  }
+}
+
 interface SidebarProps {
   selectedTopic: string | null;
   onSelectTopic: (topic: string) => void;
 }
 
 export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) {
-  const [expanded, setExpanded] = useState(false);
+  const dispatch = useDispatch();
+  const expanded = useSelector((state: RootState) => state.sidebar.expanded);
   const [filter, setFilter] = useState('');
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+
+  const username = getUsernameFromCookie();
 
   return (
     <aside
@@ -69,7 +93,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) 
             </span>
           )}
           <IconButton
-            onClick={() => setExpanded(!expanded)}
+            onClick={() => dispatch(toggleSidebar())}
             sx={{
               color: 'white',
               border: '1px solid rgba(255,255,255,0.6)',
@@ -154,11 +178,57 @@ export default function Sidebar({ selectedTopic, onSelectTopic }: SidebarProps) 
         )}
       </div>
 
-      {/* 底部：设置 icon，展开时向左平移对齐 */}
-      <div className="w-full" style={{ padding: expanded ? '0 15px' : '0', display: 'flex', justifyContent: expanded ? 'flex-end' : 'center' }}>
-        <IconButton sx={{ color: 'white' }}>
+      {/* 底部：用户名（展开时）+ 设置 icon */}
+      <div
+        className="w-full"
+        style={{
+          padding: expanded ? '0 15px' : '0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: expanded ? 'space-between' : 'center',
+          gap: '6px',
+        }}
+      >
+        {expanded && username && (
+          <span
+            style={{
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: '13px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '120px',
+            }}
+            title={username}
+          >
+            {username}
+          </span>
+        )}
+        <IconButton
+          sx={{ color: 'white', flexShrink: 0 }}
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
+        >
           <SettingsIcon />
         </IconButton>
+
+        {/* 设置菜单，向右上方展开 */}
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        >
+          <MenuItem
+            onClick={async () => {
+              setMenuAnchor(null);
+              await logoutUser();
+            }}
+          >
+            <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+            Logout
+          </MenuItem>
+        </Menu>
       </div>
     </aside>
   );

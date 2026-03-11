@@ -40,6 +40,16 @@ function logout(): void {
   window.location.replace('/login');
 }
 
+export async function logoutUser(): Promise<void> {
+  try {
+    await client.post('/auth/logout');
+  } catch {
+    // ignore backend errors, still logout locally
+  }
+  document.cookie = 'token=; Max-Age=0; path=/';
+  window.location.replace('/login');
+}
+
 async function refreshAccessToken(): Promise<boolean> {
   try {
     await axios.post(`${API_URL}/auth/refresh`, null, { withCredentials: true });
