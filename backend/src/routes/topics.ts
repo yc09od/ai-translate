@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { createTopic, listTopics, deleteTopic } from '../services/topicService'
+import { createTopic, listTopics, deleteTopic, updateTopicTitle, reorderTopics } from '../services/topicService'
 
 export async function topicRoutes(fastify: FastifyInstance) {
   // POST /topics — 创建话题
@@ -92,6 +92,87 @@ export async function topicRoutes(fastify: FastifyInstance) {
         targetLang: t.targetLang,
         createdAt: t.createdAt.toISOString(),
       }))
+    }
+  )
+
+  // PATCH /topics/:topicId — 更新话题标题
+  fastify.patch(
+    '/topics/:topicId',
+    {
+      schema: {
+        tags: ['Topics'],
+        summary: '更新话题标题',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: { topicId: { type: 'string' } },
+        },
+        body: {
+          type: 'object',
+          required: ['title'],
+          properties: { title: { type: 'string' } },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              title: { type: 'string' },
+            },
+          },
+          404: {
+            type: 'object',
+            properties: { error: { type: 'string' } },
+          },
+        },
+      },
+      onRequest: [(fastify as any).authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userId } = request.user as { userId: string }
+      const { topicId } = request.params as { topicId: string }
+      const { title } = request.body as { title: string }
+      const updated = await updateTopicTitle(topicId, userId, title)
+      if (!updated) {
+        return reply.status(404).send({ error: 'Topic not found' })
+      }
+      return { id: (updated._id as any).toString(), title: updated.title }
+    }
+  )
+
+  // PUT /topics/reorder — 批量更新话题排序
+  fastify.put(
+    '/topics/reorder',
+    {
+      schema: {
+        tags: ['Topics'],
+        summary: '批量更新话题排序',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['id', 'order'],
+            properties: {
+              id: { type: 'string' },
+              order: { type: 'number' },
+            },
+          },
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: { success: { type: 'boolean' } },
+          },
+        },
+      },
+      onRequest: [(fastify as any).authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { userId } = request.user as { userId: string }
+      const items = request.body as { id: string; order: number }[]
+      await reorderTopics(userId, items)
+      return reply.send({ success: true })
     }
   )
 

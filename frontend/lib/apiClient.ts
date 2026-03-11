@@ -128,4 +128,14 @@ export async function deleteTopic(id: string): Promise<void> {
   await client.delete(`/topics/${id}`);
 }
 
+// [99] Update topic title
+export async function updateTopicTitle(id: string, title: string): Promise<void> {
+  await client.patch(`/topics/${id}`, { title });
+}
+
+// [99] Reorder topics
+export async function reorderTopics(items: { id: string; order: number }[]): Promise<void> {
+  await client.put('/topics/reorder', items);
+}
+
 export default client;

@@ -15,13 +15,29 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import { logoutUser, getTopics, createTopic, deleteTopic } from '@/lib/apiClient';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { logoutUser, getTopics, createTopic, deleteTopic, updateTopicTitle, reorderTopics } from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
 import type { RootState } from '@/lib/store/store';
 
@@ -49,6 +65,136 @@ interface SidebarProps {
   onOpenUserProfile: () => void;
 }
 
+// Sortable topic item component
+interface SortableTopicItemProps {
+  topic: Topic;
+  isSelected: boolean;
+  editingId: string | null;
+  editValue: string;
+  editInputRef: React.RefObject<HTMLInputElement | null>;
+  onSelect: () => void;
+  onStartEdit: () => void;
+  onEditChange: (v: string) => void;
+  onEditSubmit: () => void;
+  onEditCancel: () => void;
+  onDeleteClick: () => void;
+}
+
+function SortableTopicItem({
+  topic,
+  isSelected,
+  editingId,
+  editValue,
+  editInputRef,
+  onSelect,
+  onStartEdit,
+  onEditChange,
+  onEditSubmit,
+  onEditCancel,
+  onDeleteClick,
+}: SortableTopicItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: topic.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const isEditing = editingId === topic.id;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        display: 'flex',
+        alignItems: 'center',
+        background: isSelected ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
+        border: isSelected ? '1px solid rgba(255,255,255,0.6)' : '1px solid transparent',
+        borderRadius: '6px',
+        flexShrink: 0,
+      }}
+    >
+      {/* drag handle */}
+      <span
+        {...attributes}
+        {...listeners}
+        style={{ cursor: 'grab', padding: '0 4px', color: 'rgba(255,255,255,0.3)', fontSize: '12px', userSelect: 'none', flexShrink: 0 }}
+      >
+        ⠿
+      </span>
+
+      {isEditing ? (
+        <>
+          <input
+            ref={editInputRef as React.RefObject<HTMLInputElement>}
+            type="text"
+            value={editValue}
+            onChange={(e) => onEditChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onEditSubmit();
+              if (e.key === 'Escape') onEditCancel();
+            }}
+            style={{
+              flex: 1,
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              borderRadius: '4px',
+              color: 'white',
+              fontSize: '13px',
+              outline: 'none',
+              padding: '4px 6px',
+              minWidth: 0,
+            }}
+          />
+          <IconButton size="small" onClick={onEditSubmit} sx={{ color: 'rgba(255,255,255,0.9)', padding: '2px', flexShrink: 0 }}>
+            <CheckIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={onEditCancel} sx={{ color: 'rgba(255,255,255,0.7)', padding: '2px', flexShrink: 0 }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </>
+      ) : (
+        <>
+          <button
+            onClick={onSelect}
+            style={{
+              flex: 1,
+              color: 'white',
+              background: 'none',
+              border: 'none',
+              padding: '8px 4px',
+              textAlign: 'left',
+              fontSize: '14px',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              minWidth: 0,
+            }}
+          >
+            {topic.title}
+          </button>
+          <IconButton
+            size="small"
+            onClick={onStartEdit}
+            sx={{ color: 'rgba(255,255,255,0.5)', padding: '4px', flexShrink: 0, '&:hover': { color: 'rgba(255,255,255,0.9)' } }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={onDeleteClick}
+            sx={{ color: 'rgba(255,255,255,0.5)', padding: '4px', flexShrink: 0, '&:hover': { color: 'rgba(255,255,255,0.9)' } }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfile }: SidebarProps) {
   const dispatch = useDispatch();
   const expanded = useSelector((state: RootState) => state.sidebar.expanded);
@@ -59,11 +205,16 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const [newTopicTitle, setNewTopicTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const cancelBlurRef = useRef(false);
 
   const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   async function loadTopics() {
     try {
@@ -114,6 +265,48 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
     cancelAdding();
   }
 
+  function startEditing(topic: Topic) {
+    setEditingId(topic.id);
+    setEditValue(topic.title);
+    setTimeout(() => editInputRef.current?.focus(), 0);
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditValue('');
+  }
+
+  async function submitEdit() {
+    const title = editValue.trim();
+    if (!title || !editingId) return;
+    try {
+      await updateTopicTitle(editingId, title);
+      setTopics((prev) => prev.map((t) => t.id === editingId ? { ...t, title } : t));
+      setEditingId(null);
+      setEditValue('');
+    } catch {
+      // keep editing open on error
+    }
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = topics.findIndex((t) => t.id === active.id);
+    const newIndex = topics.findIndex((t) => t.id === over.id);
+    const reordered = arrayMove(topics, oldIndex, newIndex);
+    setTopics(reordered);
+
+    try {
+      await reorderTopics(reordered.map((t, i) => ({ id: t.id, order: i })));
+    } catch {
+      // revert on error
+      await loadTopics();
+    }
+  }
+
+  const filteredTopics = topics.filter((t) => t.title.includes(filter));
   const sidebarWidth = expanded ? (isMobile ? '100vw' : 240) : 56;
 
   return (
@@ -173,53 +366,9 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
               }}
             />
 
-            {/* 可滚动的 topic 列表，最高 80vh 减去 filter input 高度 */}
-            <div className="sidebar-scroll" style={{ maxHeight: 'calc(80vh - 50px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
-              {topics.filter((t) => t.title.includes(filter)).map((topic) => (
-                <div
-                  key={topic.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: selectedTopic?.id === topic.id ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.12)',
-                    border: selectedTopic?.id === topic.id ? '1px solid rgba(255,255,255,0.6)' : '1px solid transparent',
-                    borderRadius: '6px',
-                    flexShrink: 0,
-                  }}
-                >
-                  <button
-                    onClick={() => onSelectTopic({ id: topic.id, title: topic.title })}
-                    style={{
-                      flex: 1,
-                      color: 'white',
-                      background: 'none',
-                      border: 'none',
-                      padding: '8px 10px',
-                      textAlign: 'left',
-                      fontSize: '14px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      minWidth: 0,
-                    }}
-                  >
-                    {topic.title}
-                  </button>
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteConfirmId(topic.id)}
-                    sx={{ color: 'rgba(255,255,255,0.5)', padding: '4px', flexShrink: 0, '&:hover': { color: 'rgba(255,255,255,0.9)' } }}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </div>
-              ))}
-            </div>
-
-            {/* [86] 新增 topic 入口：点击后变形为 input + submit/cancel */}
+            {/* [96] 新增 topic 入口：搜索框正下方 */}
             {adding ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
                 <input
                   ref={inputRef}
                   type="text"
@@ -275,7 +424,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
                   padding: '8px 10px',
                   fontSize: '14px',
                   cursor: 'pointer',
-                  marginTop: '4px',
+                  marginBottom: '4px',
                   flexShrink: 0,
                 }}
               >
@@ -283,6 +432,30 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
                 新增 Topic
               </button>
             )}
+
+            {/* [96+101] 可滚动 + 可拖拽的 topic 列表 */}
+            <div className="sidebar-scroll" style={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', paddingRight: '5px' }}>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={filteredTopics.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                  {filteredTopics.map((topic) => (
+                    <SortableTopicItem
+                      key={topic.id}
+                      topic={topic}
+                      isSelected={selectedTopic?.id === topic.id}
+                      editingId={editingId}
+                      editValue={editValue}
+                      editInputRef={editInputRef}
+                      onSelect={() => onSelectTopic({ id: topic.id, title: topic.title })}
+                      onStartEdit={() => startEditing(topic)}
+                      onEditChange={setEditValue}
+                      onEditSubmit={submitEdit}
+                      onEditCancel={cancelEditing}
+                      onDeleteClick={() => setDeleteConfirmId(topic.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </div>
           </div>
         )}
       </div>

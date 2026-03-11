@@ -156,17 +156,18 @@
 
 -- [94] [x] 后端：Topic model 添加 `order` 字段（Number），`POST /topics` 新建时自动赋值为当前用户最小 order 减 1（使新 topic 排最前）
 -- [95] [x] 后端：`GET /topics` 路由改为按 `order` 升序返回 topic 列表
--- [96] [ ] 前端 Sidebar：将「新增 Topic」按钮移至 topic list 顶端（搜索框正下方），topic 列表展示顺序与后端返回顺序一致
+-- [96] [x] 前端 Sidebar：将「新增 Topic」按钮移至 topic list 顶端（搜索框正下方），topic 列表展示顺序与后端返回顺序一致
 
 ## Topic 内联编辑与拖拽排序
 
--- [97] [ ] 后端：添加 `PATCH /topics/:topicId` 路由，支持更新 topic `title` 字段（需鉴权，仅允许操作自己的 topic）
--- [98] [ ] 后端：添加 `PUT /topics/reorder` 路由，接受 `[{ id, order }]` 数组，批量更新当前用户 topic 的 `order` 字段
--- [99] [ ] 前端 apiClient：添加 `updateTopicTitle(id, title)` 和 `reorderTopics(items)` 函数
--- [100] [ ] 前端 Sidebar：每个 topic 条目在 delete button 左边添加 edit icon button；点击后条目变为 inline input + submit/cancel button；提交时调用 `updateTopicTitle` 并刷新列表
--- [101] [ ] 前端 Sidebar：引入 `@dnd-kit/core` + `@dnd-kit/sortable`，实现 topic list 拖拽排序；松手后调用 `reorderTopics` 更新后端 order
+-- [97] [x] 后端：添加 `PATCH /topics/:topicId` 路由，支持更新 topic `title` 字段（需鉴权，仅允许操作自己的 topic）
+-- [98] [x] 后端：添加 `PUT /topics/reorder` 路由，接受 `[{ id, order }]` 数组，批量更新当前用户 topic 的 `order` 字段
+-- [99] [x] 前端 apiClient：添加 `updateTopicTitle(id, title)` 和 `reorderTopics(items)` 函数
+-- [100] [x] 前端 Sidebar：每个 topic 条目在 delete button 左边添加 edit icon button；点击后条目变为 inline input + submit/cancel button；提交时调用 `updateTopicTitle` 并刷新列表
+-- [101] [x] 前端 Sidebar：引入 `@dnd-kit/core` + `@dnd-kit/sortable`，实现 topic list 拖拽排序；松手后调用 `reorderTopics` 更新后端 order
 
 ## pending things Start
+Bug, 当左边nav更改item的title之后，且这个item被选中的时候，右边的main panel的title没有更新。需求：右边main pannel title需要更新
 
 ## pending things End
 
