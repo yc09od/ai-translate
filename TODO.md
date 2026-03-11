@@ -115,7 +115,16 @@
 -- [75] [x] 前端：左侧 nav bar 默认状态为展开，且 nav bar 的展开/收起状态存入 Redux 并持久化到本地（localStorage）。
 
 
+## User Profile
+
+-- [76] [ ] 前端：setting button group 中添加 User Profile 选项。
+-- [77] [ ] 前端：点击 User Profile 按钮后，中间 Panel 区域替换为 User Profile 页面（不跳转路由，仅替换内容区域）。
+-- [78] [ ] 前端：User Profile 页面显示当前登录用户名，并提供编辑输入框，用户可修改后保存。
+-- [79] [ ] 前端：User Profile 页面提供关闭/返回操作，回到原 Main Panel 视图。
+-- [80] [ ] 后端：提供用户名更新接口（如 `PATCH /users/me`），更新 MongoDB 中 User 文档的 `name` 字段。
+
 ## still think，do not do any item after this line
+
 
 -- 读取流
 我们需要api连续的读取音频流

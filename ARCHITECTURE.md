@@ -71,6 +71,12 @@
 - 前端：清除本地 token cookie → 调用后端登出接口 → 跳转到 /login
 - 后端：提供 `POST /auth/logout` 路由，删除 Redis 中对应的 session key
 
+**User Profile 流程：**
+- 前端：用户点击导航栏设置 icon → 弹出 button group → 点击 User Profile
+- 前端：中间 Panel 区域替换为 User Profile 页面（不跳转路由）
+- User Profile 页面显示当前用户名，支持修改并保存
+- 后端：提供用户名更新接口，更新 MongoDB 中的 User 文档 `name` 字段
+
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。
 *   **翻译 API**: 用于将文本从源语言翻译成目标语言的 Gemini API 或 Kimi API。

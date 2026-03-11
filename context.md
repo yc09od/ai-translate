@@ -174,7 +174,18 @@
   - 设置 icon 保持可见，展开时整体向左平移
   - 设置 icon **左侧**显示当前登录用户名：取 email `@` 前半部分，若过长则用 `...` 截断
 - **设置 icon 点击行为**：点击后弹出 button group，以设置 icon 为锚点向**右上方**展开，包含以下选项：
+  - **User Profile**：点击后替换中间 Panel，显示 User Profile 页面（见下方 User Profile 页面设计）
   - **Logout**：点击后执行登出（清除 token、调用后端登出接口、跳转到 /login）
+
+#### User Profile 页面
+
+- 点击导航栏设置 button group 中的 **User Profile** 后，**中间 Panel 区域**被替换为 User Profile 页面（不跳转路由，仅替换内容区域）。
+- **页面内容**：
+  - 显示当前登录用户的用户名（User Name）
+  - 提供编辑用户名的输入框，用户可修改并保存
+- **返回**：用户可通过页面内关闭/返回操作回到原 Main Panel 视图
+
+---
 
 #### 中间 Panel
 
