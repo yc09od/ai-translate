@@ -66,6 +66,11 @@
 - `userService` 的创建用户逻辑**仅在此处触发**，没有独立的"注册"接口。
 - 登出时删除 Redis 中对应的 session key。
 
+**登出流程：**
+- 前端：用户点击导航栏设置 icon → 弹出 button group → 点击 Logout
+- 前端：清除本地 token cookie → 调用后端登出接口 → 跳转到 /login
+- 后端：提供 `POST /auth/logout` 路由，删除 Redis 中对应的 session key
+
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。
 *   **翻译 API**: 用于将文本从源语言翻译成目标语言的 Gemini API 或 Kimi API。

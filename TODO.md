@@ -108,12 +108,11 @@
 -- [68] [x] APi添加路由，允许使用refresh token生成新token。
 -- [69] [x] 前端实现 token 自动续期：在每次 API 请求前检测 access token 是否即将过期，若是则先用 refresh token 调用后端换取新 token，再发起原请求
 -- [70] [x] Api cros将前端添加入允许的origin。同时cros允许在env加入list。
+-- [71] [ ] 前端：在 setting button 左边显示当前登录用户名。取 email @ 符号前半部分作为显示名；若名字过长则用省略号（...）截断。
+-- [72] [ ] 前端：点击 setting button 弹出 button group，以 setting button 为锚点向右上方展开。
+-- [73] [ ] 前端：setting button group 中添加 Logout 选项，点击后清除 token cookie、调用后端 POST /auth/logout、跳转到 /login。
 
 ## still think，do not do any item after this line
-
-如果token invalid，那么将refresh，如果refresh invalid，那么logout。
-前端需要有logout button
-前端login之后要能得到当前用户信息
 
 -- 读取流
 我们需要api连续的读取音频流
