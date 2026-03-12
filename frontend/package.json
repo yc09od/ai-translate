@@ -21,6 +21,7 @@
     "@mui/material-nextjs": "^7.3.9",
     "@reduxjs/toolkit": "^2.11.2",
     "axios": "^1.13.6",
+    "hark": "^1.2.3",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
     "react": "19.2.3",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/hark": "^1.2.5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

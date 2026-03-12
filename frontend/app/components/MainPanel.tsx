@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import hark from 'hark';
 import TopicHeader from './TopicHeader';
 import TranslationList from './TranslationList';
 import BottomInputBar from './BottomInputBar';
@@ -20,11 +21,6 @@ const MOCK_TRANSLATIONS: TranslationPair[] = [
   { original: 'The translation will appear in real time.', translated: '翻译结果将实时显示。' },
 ];
 
-// [110] VAD config
-const VAD_PEAK_WINDOW_FRAMES = 80;   // ~2s at 60fps, sliding window for peak
-const VAD_SILENCE_RATIO = 0.35;       // [112] raised from 0.20: current < peak * 35% → silence
-const VAD_SILENCE_ABS = 8;           // [112] absolute floor: avg < 8 also counts as silence (handles ambient noise)
-const VAD_SILENCE_MS = 500;           // silence must persist 0.5s to trigger end_utterance
 
 function getTokenFromCookie(): string {
   if (typeof document === 'undefined') return '';
@@ -45,11 +41,10 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const wsRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  // [110] VAD state
-  const peakWindowRef = useRef<number[]>([]);   // sliding window of recent avg volumes
-  const silenceStartRef = useRef<number | null>(null); // timestamp when silence began
-  const hasSpeechRef = useRef(false);           // true if speech detected since last end_utterance
+  // hark instance ref for cleanup
+  const harkerRef = useRef<ReturnType<typeof hark> | null>(null);
 
+  // Waveform animation
   useEffect(() => {
     if (isRecording && stream) {
       const audioCtx = new AudioContext();
@@ -61,58 +56,15 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
       const data = new Uint8Array(analyser.frequencyBinCount);
       const bins = [1, 2, 3, 4, 5, 6, 5, 4, 3, 1];
-
-      // Reset VAD state on recording start
-      peakWindowRef.current = [];
-      silenceStartRef.current = null;
-      hasSpeechRef.current = false;
-
       const tick = () => {
         analyser.getByteFrequencyData(data);
-
-        // Waveform bars
         bins.forEach((bin, i) => {
           const bar = barRefs.current[i];
           if (bar) {
             const val = data[bin] / 255;
-            const h = Math.max(4, Math.round(val * 24));
-            bar.style.height = `${h}px`;
+            bar.style.height = `${Math.max(4, Math.round(val * 24))}px`;
           }
         });
-
-        // [110] VAD: compute current avg volume
-        const avg = data.reduce((s, v) => s + v, 0) / data.length;
-
-        // Maintain sliding peak window
-        const win = peakWindowRef.current;
-        win.push(avg);
-        if (win.length > VAD_PEAK_WINDOW_FRAMES) win.shift();
-        const peak = Math.max(...win, 1); // avoid divide-by-zero
-
-        const isSilent = avg < peak * VAD_SILENCE_RATIO || avg < VAD_SILENCE_ABS;
-        const now = performance.now();
-
-        if (isSilent) {
-          if (silenceStartRef.current === null) {
-            silenceStartRef.current = now;
-          } else if (now - silenceStartRef.current >= VAD_SILENCE_MS) {
-            // Silence threshold exceeded — send end_utterance only if speech was detected
-            if (hasSpeechRef.current) {
-              const ws = wsRef.current;
-              if (ws?.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'end_utterance' }));
-                console.log('[VAD] end_utterance sent', { avg: avg.toFixed(1), peak: peak.toFixed(1) });
-              }
-              hasSpeechRef.current = false;
-            }
-            silenceStartRef.current = null;
-          }
-        } else {
-          // Speaking — mark speech detected, reset silence timer
-          hasSpeechRef.current = true;
-          silenceStartRef.current = null;
-        }
-
         animationRef.current = requestAnimationFrame(tick);
       };
       tick();
@@ -124,6 +76,31 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       if (audioCtxRef.current) audioCtxRef.current.close();
+    };
+  }, [isRecording, stream]);
+
+  // hark VAD: speaking / stopped_speaking events
+  useEffect(() => {
+    if (isRecording && stream) {
+      const harker = hark(stream, { threshold: -65, interval: 100 });
+      harkerRef.current = harker;
+      let hasSpeech = false;
+
+      harker.on('speaking', () => { hasSpeech = true; });
+      harker.on('stopped_speaking', () => {
+        if (hasSpeech && wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: 'end_utterance' }));
+          console.log('[hark] end_utterance sent');
+        }
+        hasSpeech = false;
+      });
+    } else {
+      harkerRef.current?.stop();
+      harkerRef.current = null;
+    }
+    return () => {
+      harkerRef.current?.stop();
+      harkerRef.current = null;
     };
   }, [isRecording, stream]);
 
