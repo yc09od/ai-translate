@@ -1,7 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { translateWithGemini, translateWithKimi } from '../services/aiService'
+import { localOnly } from '../hooks/localOnly'
 
 export async function devTestRoutes(fastify: FastifyInstance) {
+  // All /dev/* routes are localhost-only
+  fastify.addHook('onRequest', localOnly)
+
   // POST /dev/test/translate — 测试 AI 翻译（仅 dev 环境）
   fastify.post(
     '/dev/test/translate',

@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { localOnly } from '../hooks/localOnly'
 
 export async function systemRoutes(fastify: FastifyInstance) {
   fastify.get('/', { schema: { hide: true } }, async (_request, reply) => {
@@ -6,6 +7,7 @@ export async function systemRoutes(fastify: FastifyInstance) {
   })
 
   fastify.get('/health', {
+    onRequest: [localOnly],
     schema: {
       tags: ['System'],
       summary: 'Health check',
