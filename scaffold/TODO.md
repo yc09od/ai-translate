@@ -189,7 +189,8 @@
 ## pending things Start
 ## pending things End
 
--- [112] [ ] Bug 修复：VAD 静音检测阈值过严导致 end_utterance 从未触发——所有音频保存为一个文件。修复方案：在相对阈值基础上叠加绝对阈值下限（如 avg < 8 才判定为静音），同时适当提高 VAD_SILENCE_RATIO（如从 0.20 调至 0.35），并在前端添加 console.log 输出 end_utterance 触发日志以便验证
+-- [112] [x] Bug 修复：VAD 静音检测阈值过严
+-- [114] [x] 后端：将音频文件格式从 mp4 改为 wav——修改 `routes/liveTranslation.ts` 中的文件扩展名（`.mp4` → `.webm`）导致 end_utterance 从未触发——所有音频保存为一个文件。修复方案：在相对阈值基础上叠加绝对阈值下限（如 avg < 8 才判定为静音），同时适当提高 VAD_SILENCE_RATIO（如从 0.20 调至 0.35），并在前端添加 console.log 输出 end_utterance 触发日志以便验证
 
 ## still think，do not do any item after this line
 -- 读取流

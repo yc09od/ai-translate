@@ -33,7 +33,7 @@ async function flushAudioBuffer(topicId: string, chunks: Buffer[]): Promise<void
   const hh = String(now.getHours()).padStart(2, '0')
   const mm = String(now.getMinutes()).padStart(2, '0')
   const ss = String(now.getSeconds()).padStart(2, '0')
-  const filename = path.join(RECORDER_DIR, `${topicId}-${hh}-${mm}-${ss}.mp4`)
+  const filename = path.join(RECORDER_DIR, `${topicId}-${hh}-${mm}-${ss}.webm`)
   await fs.promises.writeFile(filename, combined)
 }
 

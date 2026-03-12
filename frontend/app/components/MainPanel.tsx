@@ -22,8 +22,9 @@ const MOCK_TRANSLATIONS: TranslationPair[] = [
 
 // [110] VAD config
 const VAD_PEAK_WINDOW_FRAMES = 80;   // ~2s at 60fps, sliding window for peak
-const VAD_SILENCE_RATIO = 0.20;       // current < peak * 20% → silence
-const VAD_SILENCE_MS = 1000;          // silence must persist 1s to trigger end_utterance
+const VAD_SILENCE_RATIO = 0.35;       // [112] raised from 0.20: current < peak * 35% → silence
+const VAD_SILENCE_ABS = 8;           // [112] absolute floor: avg < 8 also counts as silence (handles ambient noise)
+const VAD_SILENCE_MS = 500;           // silence must persist 0.5s to trigger end_utterance
 
 function getTokenFromCookie(): string {
   if (typeof document === 'undefined') return '';
@@ -47,6 +48,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   // [110] VAD state
   const peakWindowRef = useRef<number[]>([]);   // sliding window of recent avg volumes
   const silenceStartRef = useRef<number | null>(null); // timestamp when silence began
+  const hasSpeechRef = useRef(false);           // true if speech detected since last end_utterance
 
   useEffect(() => {
     if (isRecording && stream) {
@@ -63,6 +65,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       // Reset VAD state on recording start
       peakWindowRef.current = [];
       silenceStartRef.current = null;
+      hasSpeechRef.current = false;
 
       const tick = () => {
         analyser.getByteFrequencyData(data);
@@ -86,23 +89,27 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
         if (win.length > VAD_PEAK_WINDOW_FRAMES) win.shift();
         const peak = Math.max(...win, 1); // avoid divide-by-zero
 
-        const isSilent = avg < peak * VAD_SILENCE_RATIO;
+        const isSilent = avg < peak * VAD_SILENCE_RATIO || avg < VAD_SILENCE_ABS;
         const now = performance.now();
 
         if (isSilent) {
           if (silenceStartRef.current === null) {
             silenceStartRef.current = now;
           } else if (now - silenceStartRef.current >= VAD_SILENCE_MS) {
-            // Silence threshold exceeded — send end_utterance
-            const ws = wsRef.current;
-            if (ws?.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ type: 'end_utterance' }));
+            // Silence threshold exceeded — send end_utterance only if speech was detected
+            if (hasSpeechRef.current) {
+              const ws = wsRef.current;
+              if (ws?.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'end_utterance' }));
+                console.log('[VAD] end_utterance sent', { avg: avg.toFixed(1), peak: peak.toFixed(1) });
+              }
+              hasSpeechRef.current = false;
             }
-            // Only reset silence timer; keep peak window so next detection works correctly
             silenceStartRef.current = null;
           }
         } else {
-          // Speaking — reset silence timer
+          // Speaking — mark speech detected, reset silence timer
+          hasSpeechRef.current = true;
           silenceStartRef.current = null;
         }
 
