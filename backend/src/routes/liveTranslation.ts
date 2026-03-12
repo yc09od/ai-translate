@@ -2,6 +2,11 @@ import { FastifyInstance } from 'fastify'
 import { WebSocket } from '@fastify/websocket'
 import { RawData } from 'ws'
 import { getSession } from '../services/sessionStore'
+import fs from 'fs'
+import path from 'path'
+
+const RECORDER_DIR = path.resolve(__dirname, '../../test/recorder')
+const MESSAGE_FILE = path.resolve(__dirname, '../../test/message.txt')
 
 // Track active connections per topic: topicId -> Set of WebSocket clients
 const topicConnections = new Map<string, Set<WebSocket>>()
@@ -18,6 +23,18 @@ function removeConnection(topicId: string, ws: WebSocket) {
   if (topicConnections.get(topicId)?.size === 0) {
     topicConnections.delete(topicId)
   }
+}
+
+async function flushAudioBuffer(topicId: string, chunks: Buffer[]): Promise<void> {
+  if (chunks.length === 0) return
+  const combined = Buffer.concat(chunks)
+  await fs.promises.mkdir(RECORDER_DIR, { recursive: true })
+  const now = new Date()
+  const hh = String(now.getHours()).padStart(2, '0')
+  const mm = String(now.getMinutes()).padStart(2, '0')
+  const ss = String(now.getSeconds()).padStart(2, '0')
+  const filename = path.join(RECORDER_DIR, `${topicId}-${hh}-${mm}-${ss}.mp4`)
+  await fs.promises.writeFile(filename, combined)
 }
 
 export async function liveTranslationRoutes(fastify: FastifyInstance) {
@@ -58,17 +75,51 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
       fastify.log.info(`WS connected: userId=${userId} topicId=${topicId}`)
       socket.send(JSON.stringify({ type: 'connected', topicId, userId }))
 
-      // Message handler
-      socket.on('message', (rawMessage: RawData) => {
+      // Audio buffer state
+      // headerChunk: first binary frame (container init segment), prepended to every file
+      // so each file is independently playable.
+      let headerChunk: Buffer | null = null
+      let audioChunks: Buffer[] = []
+      let isFirstFlush = true
+
+      // [111] Flush triggered by end_utterance (no timer)
+      async function flushOnUtterance() {
+        if (audioChunks.length === 0) return
+        const toFlush = isFirstFlush ? audioChunks : [headerChunk!, ...audioChunks]
+        isFirstFlush = false
+        audioChunks = []
         try {
-          const message = JSON.parse(rawMessage.toString()) as {
-            type: string
-            [key: string]: unknown
+          await flushAudioBuffer(topicId, toFlush)
+          fastify.log.info(`Saved utterance file: topicId=${topicId}`)
+        } catch (err) {
+          fastify.log.error(`Failed to save utterance file: ${err}`)
+        }
+      }
+
+      // Message handler — binary: audio chunks; text: JSON protocol or plain string
+      socket.on('message', async (rawMessage: RawData, isBinary: boolean) => {
+        // Binary frame: accumulate audio buffer; cache first chunk as header
+        if (isBinary) {
+          const chunk = Buffer.from(rawMessage as Buffer)
+          if (headerChunk === null) {
+            headerChunk = chunk
           }
+          audioChunks.push(chunk)
+          return
+        }
+
+        const text = rawMessage.toString()
+
+        // Try JSON protocol messages first
+        try {
+          const message = JSON.parse(text) as { type: string; [key: string]: unknown }
           fastify.log.info(`WS message: type=${message.type} topicId=${topicId} userId=${userId}`)
 
-          // Dispatch by message type — handlers to be added in future TODOs
           switch (message.type) {
+            case 'end_utterance':
+              // [111] Frontend VAD detected silence — save current buffer as a file
+              await flushOnUtterance()
+              break
             case 'ping':
               socket.send(JSON.stringify({ type: 'pong' }))
               break
@@ -76,12 +127,26 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
               socket.send(JSON.stringify({ type: 'error', message: `Unknown message type: ${message.type}` }))
           }
         } catch {
-          socket.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }))
+          // [109] Plain text string from input box: append to message.txt
+          try {
+            await fs.promises.mkdir(path.dirname(MESSAGE_FILE), { recursive: true })
+            await fs.promises.appendFile(MESSAGE_FILE, text + '\n')
+            fastify.log.info(`Appended text to message.txt: "${text}"`)
+          } catch (err) {
+            fastify.log.error(`Failed to append to message.txt: ${err}`)
+          }
         }
       })
 
-      // Cleanup on close
-      socket.on('close', () => {
+      // Cleanup on close: flush any remaining buffer
+      socket.on('close', async () => {
+        try {
+          const toFlush = isFirstFlush ? audioChunks : [headerChunk!, ...audioChunks]
+          await flushAudioBuffer(topicId, toFlush)
+        } catch (err) {
+          fastify.log.error(`Failed to flush remaining audio on close: ${err}`)
+        }
+        audioChunks = []
         removeConnection(topicId, socket)
         fastify.log.info(`WS disconnected: userId=${userId} topicId=${topicId}`)
       })
