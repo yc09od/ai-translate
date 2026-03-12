@@ -1,5 +1,5 @@
 ---
-name: to-next
+name: do-next
 description: 读取 TODO.md，找到第一个未完成的 TODO 条目并执行它。
 ---
 
