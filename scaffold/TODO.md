@@ -165,10 +165,10 @@
 -- [99] [x] 前端 apiClient：添加 `updateTopicTitle(id, title)` 和 `reorderTopics(items)` 函数
 -- [100] [x] 前端 Sidebar：每个 topic 条目在 delete button 左边添加 edit icon button；点击后条目变为 inline input + submit/cancel button；提交时调用 `updateTopicTitle` 并刷新列表
 -- [101] [x] 前端 Sidebar：引入 `@dnd-kit/core` + `@dnd-kit/sortable`，实现 topic list 拖拽排序；松手后调用 `reorderTopics` 更新后端 order
+-- [102] [x] 前端 Sidebar：修复 inline 编辑 topic title 后 main panel title 不同步的 bug——编辑成功后若该 topic 是当前选中项，同步调用 `onSelectTopic` 更新 `selectedTopic` 状态
 
 ## pending things Start
-Bug, 当左边nav更改item的title之后，且这个item被选中的时候，右边的main panel的title没有更新。需求：右边main pannel title需要更新
-
+设计：添加api router POST /topic/{topicId}/translation/live 这是一个websocket的server
 ## pending things End
 
 ## still think，do not do any item after this line

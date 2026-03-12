@@ -282,6 +282,9 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
     try {
       await updateTopicTitle(editingId, title);
       setTopics((prev) => prev.map((t) => t.id === editingId ? { ...t, title } : t));
+      if (selectedTopic?.id === editingId) {
+        onSelectTopic({ id: editingId, title });
+      }
       setEditingId(null);
       setEditValue('');
     } catch {

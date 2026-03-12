@@ -178,6 +178,7 @@
   - 显示所有已有 topic 列表（根据搜索框内容过滤）
   - 每条 topic 条目右侧按钮区：**edit icon button**（在 delete button 左边）+ delete icon button
     - 点击 edit button 后，条目变为 inline input，右侧出现 submit/cancel button；提交后调用后端更新 title 接口并刷新列表
+    - 若被编辑的 topic 是当前选中项，编辑成功后同步更新 `selectedTopic` 状态，确保 main panel title 实时反映新名称
   - 点击 delete icon button 后弹出确认 dialog，确认则调用 API 删除该 topic 并刷新列表
   - **「新增 Topic」按钮位于 topic list 顶端**（搜索框正下方）
   - topic 列表支持**拖拽排序**：可拖拽条目调整顺序，松手后调用 `PUT /topics/reorder` 接口批量更新 order
