@@ -198,7 +198,7 @@
 ## AI API 集成
 
 -- [115] [x] 后端：集成 Kimi / Gemini 标准文本 API——在 `backend/.env` 添加 `GEMINI_API_KEY` 和 `KIMI_API_KEY`，安装对应 SDK（`@google/generative-ai`），实现 `aiService.translate(text)` 调用 AI API 进行文本翻译
--- [116] [ ] 后端：集成 Gemini Live 实时流式 API——实现流式调用能力，支持逐段返回翻译结果并通过 WebSocket 实时推送至前端
+-- [116] [x] 后端：集成 Gemini Live 实时流式 API——实现流式调用能力，支持逐段返回翻译结果并通过 WebSocket 实时推送至前端
 
 ## still think，do not do any item after this line
 -- 读取流
