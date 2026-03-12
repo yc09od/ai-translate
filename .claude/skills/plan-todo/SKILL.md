@@ -1,19 +1,22 @@
 ---
 name: plan-todo
-description: 读取 TODO.md 中 pending things 区域的待办事项或设计，更新 ARCHITECTURE.md 和 context.md，然后在 TODO.md 中添加正式的 TODO 条目。
+description: 读取 scaffold/PENDING.md 的待办事项或设计，更新 ARCHITECTURE.md 和 context.md，然后在 TODO.md 中添加正式的 TODO 条目。
 ---
 
 你是这个项目的技术规划助手。当用户调用此 skill 时，按以下步骤执行：
 
 ## 步骤 1：确定内容来源
 
-读取 `scaffold/TODO.md` 中 `## pending things Start` 和 `## pending things End` 之间的内容，同时检查调用时是否传入了参数（`ARGUMENTS` 字段）。
+读取 `scaffold/PENDING.md` 的全部内容，同时检查调用时是否传入了参数（`ARGUMENTS` 字段）。
+
+例外情况处理：
+- 如果 `PENDING.md` 中有一行 类似“still thinking, do not touch”的说明，从此行开始往下的内容都视为未定稿，不予处理。
 
 将两者**合并**作为本次处理的输入：
-- pending things 有内容、有参数 → 合并两者，一并处理
-- pending things 有内容、无参数 → 仅处理 pending things
-- pending things 为空、有参数 → 仅处理参数
-- pending things 为空、无参数 → 告知用户没有待处理的内容，停止执行
+- PENDING.md 有内容、有参数 → 合并两者，一并处理
+- PENDING.md 有内容、无参数 → 仅处理 PENDING.md
+- PENDING.md 为空、有参数 → 仅处理参数
+- PENDING.md 为空、无参数 → 告知用户没有待处理的内容，停止执行
 
 ## 步骤 2：分析内容
 
@@ -46,7 +49,7 @@ description: 读取 TODO.md 中 pending things 区域的待办事项或设计，
 
 在 `scaffold/TODO.md` 中：
 1. 找到当前最大的 TODO 编号（格式为 `-- [N]`）
-2. 在 `## pending things Start` 之前找到合适的功能分区（或新建一个 `## 新功能名称` 章节）
+2. 找到合适的功能分区（或在文件末尾新建一个 `## 新功能名称` 章节）
 3. 以以下格式添加新的 TODO 条目：
 
 ```
@@ -59,9 +62,13 @@ description: 读取 TODO.md 中 pending things 区域的待办事项或设计，
 - 如果 pending things 包含多个子任务，可以用子编号：`-- [N.1] [ ]`、`-- [N.2] [ ]`
 - 描述用中文，技术术语保留英文
 
-## 步骤 6：清空 pending things 区域
+## 步骤 6：清空 PENDING.md
 
-将 TODO.md 中 `## pending things Start` 和 `## pending things End` 之间的内容清空（只保留这两行标题）。
+将 `scaffold/PENDING.md` 的内容清空（保留文件，内容置为空）。
+
+例外情况处理：
+- 如果 `PENDING.md` 中有一行 类似“still thinking, do not touch”的说明，从此行往上的内容清空，往下的内容保留。
+
 绝对禁止在用户要求做之前做任何的todo条目。
 
 ## 完成

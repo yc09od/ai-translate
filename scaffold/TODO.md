@@ -186,18 +186,19 @@
 -- [110] [x] 前端：在录音过程中，利用 AnalyserNode 实时监测音量，使用相对阈值检测静音（当前音量 < 近 2 秒滑动峰值 × 20%），持续静音超过 1 秒时通过 WebSocket 发送 `{ type: "end_utterance" }` 消息，然后重置计时器
 -- [111] [x] 后端：移除 5 秒定时 flush interval；改为收到 `end_utterance` 消息时，将累积的 binary buffer 保存为一个新音频文件并清空 buffer（保留 headerChunk）
 
-## pending things Start
-## pending things End
-
 -- [112] [x] Bug 修复：VAD 静音检测阈值过严
 -- [114] [x] 后端：将音频文件格式从 mp4 改为 wav——修改 `routes/liveTranslation.ts` 中的文件扩展名（`.mp4` → `.webm`）导致 end_utterance 从未触发——所有音频保存为一个文件。修复方案：在相对阈值基础上叠加绝对阈值下限（如 avg < 8 才判定为静音），同时适当提高 VAD_SILENCE_RATIO（如从 0.20 调至 0.35），并在前端添加 console.log 输出 end_utterance 触发日志以便验证
 
+## pending things Start
+
+
+
+## pending things End
+
 ## still think，do not do any item after this line
 -- 读取流
-我们需要api连续的读取音频流
-我们需要api来给音频流做断句。
 我们需要一个预prompt，只输出翻译之后的句子。
-当api断句之后，应该把这一段buffer送给ai api翻译。
+
 当api得到ai api返回的译文，我们需要第一，保存这个结果，同时也发送这个结果给前台。
 前台要渲染这个结果
 

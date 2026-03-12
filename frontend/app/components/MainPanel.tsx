@@ -70,12 +70,12 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       tick();
     } else {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioCtxRef.current) audioCtxRef.current.close();
+      if (audioCtxRef.current?.state !== 'closed') audioCtxRef.current?.close();
       barRefs.current.forEach((bar) => { if (bar) bar.style.height = '6px'; });
     }
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (audioCtxRef.current) audioCtxRef.current.close();
+      if (audioCtxRef.current?.state !== 'closed') audioCtxRef.current?.close();
     };
   }, [isRecording, stream]);
 
