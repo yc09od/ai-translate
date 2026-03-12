@@ -84,6 +84,33 @@
 - User Profile 页面显示当前用户名，支持修改并保存
 - 后端：提供用户名更新接口，更新 MongoDB 中的 User 文档 `name` 字段
 
+### 2.3.2. 实时翻译 WebSocket 端点
+
+**路由**：`GET /topics/:topicId/translation/live`（WebSocket upgrade，需 Bearer token 鉴权）
+
+**实现库**：`@fastify/websocket`
+
+**消息协议（客户端 → 服务端）**：
+```json
+{ "type": "audio_chunk", "data": "<base64 encoded PCM chunk>" }
+{ "type": "end" }
+```
+
+**消息协议（服务端 → 客户端）**：
+```json
+{ "type": "transcript", "text": "..." }
+{ "type": "translation", "original": "...", "translated": "...", "recordId": "..." }
+{ "type": "error", "message": "..." }
+```
+
+**处理流程**：
+1. 客户端建立 WebSocket 连接，携带 Bearer token（query param `token=xxx` 或 Authorization header）
+2. 服务端验证 token 和 topicId 归属
+3. 客户端持续发送 `audio_chunk`（PCM 数据）
+4. 服务端调用语音识别 API 断句 → 返回 `transcript`
+5. 服务端调用翻译 API → 返回 `translation`，同时保存到 MongoDB（TranslationRecord）
+6. 客户端发送 `end` 或断开连接时清理资源
+
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。
 *   **翻译 API**: 用于将文本从源语言翻译成目标语言的 Gemini API 或 Kimi API。

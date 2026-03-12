@@ -6,6 +6,7 @@ import fcookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
+import websocket from '@fastify/websocket'
 import mongoose from 'mongoose'
 import { connectMongoDB } from './db/mongodb'
 import { redis, connectRedis } from './db/redis'
@@ -15,6 +16,7 @@ import { topicRoutes } from './routes/topics'
 import { translationRoutes } from './routes/translations'
 import { userRoutes } from './routes/users'
 import { systemRoutes } from './routes/system'
+import { liveTranslationRoutes } from './routes/liveTranslation'
 
 // Fastify type augmentation for decorated DB instances
 declare module 'fastify' {
@@ -64,6 +66,9 @@ server.register(swaggerUi, {
   uiConfig: { docExpansion: 'list' },
 })
 
+// WebSocket
+server.register(websocket)
+
 // Cookie
 server.register(fcookie)
 
@@ -89,6 +94,7 @@ server.register(authRoutes)
 server.register(topicRoutes)
 server.register(translationRoutes)
 server.register(userRoutes)
+server.register(liveTranslationRoutes)
 
 const start = async () => {
   try {

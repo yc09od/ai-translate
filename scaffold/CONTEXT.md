@@ -85,12 +85,21 @@
 ```
 用户说话
   → 前端采集音频（WebRTC/WebSocket）
-  → 后端接收音频
-  → 语音识别 API 返回转录文本
-  → 翻译 API 返回翻译文本
-  → 后端推送译文到前端
-  → 前端展示译文 + 后端存入 MongoDB
+  → 建立 WebSocket 连接：GET /topics/:topicId/translation/live
+  → 前端持续发送 audio_chunk（base64 PCM）
+  → 后端调用语音识别 API → 断句 → 返回 transcript 消息
+  → 后端调用翻译 API → 返回 translation 消息 + 存入 MongoDB
+  → 前端实时渲染原文和译文
 ```
+
+**WebSocket 消息协议（客户端 → 服务端）：**
+- `{ type: "audio_chunk", data: "<base64 PCM>" }` — 发送音频数据
+- `{ type: "end" }` — 通知音频结束
+
+**WebSocket 消息协议（服务端 → 客户端）：**
+- `{ type: "transcript", text: "..." }` — 语音识别中间结果
+- `{ type: "translation", original: "...", translated: "...", recordId: "..." }` — 翻译完成
+- `{ type: "error", message: "..." }` — 错误通知
 
 ---
 

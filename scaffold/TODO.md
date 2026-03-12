@@ -167,8 +167,13 @@
 -- [101] [x] 前端 Sidebar：引入 `@dnd-kit/core` + `@dnd-kit/sortable`，实现 topic list 拖拽排序；松手后调用 `reorderTopics` 更新后端 order
 -- [102] [x] 前端 Sidebar：修复 inline 编辑 topic title 后 main panel title 不同步的 bug——编辑成功后若该 topic 是当前选中项，同步调用 `onSelectTopic` 更新 `selectedTopic` 状态
 
+## 实时翻译 WebSocket
+
+-- [103] [x] 后端：安装 `@fastify/websocket` 插件，在 `index.ts` 中注册
+-- [104] [x] 后端：创建 `routes/liveTranslation.ts`，实现 WebSocket 路由 `GET /topics/:topicId/translation/live`（鉴权、连接管理、消息收发框架）
+
 ## pending things Start
-设计：添加api router POST /topic/{topicId}/translation/live 这是一个websocket的server
+
 ## pending things End
 
 ## still think，do not do any item after this line
