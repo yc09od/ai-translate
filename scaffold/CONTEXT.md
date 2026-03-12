@@ -282,6 +282,8 @@ PORT=8000
 MONGODB_URI=mongodb://localhost:27017/ai-translate
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=dev-secret
+GEMINI_API_KEY=your-gemini-api-key
+KIMI_API_KEY=your-kimi-api-key
 ```
 
 ---

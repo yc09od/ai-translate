@@ -128,6 +128,9 @@
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。
 *   **翻译 API**: 用于将文本从源语言翻译成目标语言的 Gemini API 或 Kimi API。
+    *   **Gemini API**：通过 `@google/generative-ai` SDK 调用，支持标准文本翻译和 Gemini Live 实时流式输出。
+    *   **Kimi API**：通过 HTTP 调用 Moonshot AI 的 API，支持标准文本翻译。
+    *   **环境变量**：`GEMINI_API_KEY`（Google AI Studio 获取）、`KIMI_API_KEY`（Moonshot 平台获取），均配置于 `backend/.env`。
 *   **OAuth 提供商**: 用于用户身份验证的 Google 和 Hotmail。
 
 ## 3. 数据流

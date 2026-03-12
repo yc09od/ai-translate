@@ -1,6 +1,3 @@
-feature：实现和kimi或者gemini api交互功能。添加相应的api key进env。
-feature：实现调取kimi或者gemini api live能力。
-
 ## still thinking, do not touch
 
 feature：实现和kimi或者gemini api交互功能。添加相应的api key进env。

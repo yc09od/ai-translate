@@ -10,7 +10,7 @@ description: 读取 scaffold/PENDING.md 的待办事项或设计，更新 ARCHIT
 读取 `scaffold/PENDING.md` 的全部内容，同时检查调用时是否传入了参数（`ARGUMENTS` 字段）。
 
 例外情况处理：
-- 如果 `PENDING.md` 中有一行 类似“still thinking, do not touch”的说明，从此行开始往下的内容都视为未定稿，不予处理。
+- 如果 `PENDING.md` 中有一行 类似“still thinking, do not touch”的说明，从此行开始往下的内容都视为未定稿，不予处理。仅仅处理此行以上的内容。
 
 将两者**合并**作为本次处理的输入：
 - PENDING.md 有内容、有参数 → 合并两者，一并处理
