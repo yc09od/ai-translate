@@ -16,7 +16,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     // token cookie is not HttpOnly, so JS can read it for auth checks
     const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('token='));
     if (!hasToken) {
-      router.replace('/login');
+      // [113] Token cookie gone — try refresh before logging out.
+      // refreshToken (HttpOnly, 30d) may still be valid.
+      // refreshAccessToken() calls logout() internally on failure, so no else needed.
+      refreshAccessToken().then(refreshed => {
+        if (refreshed) setChecked(true);
+      });
     } else {
       setChecked(true);
     }

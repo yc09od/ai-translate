@@ -147,6 +147,7 @@
 ## Token 后台保活
 
 -- [92] [x] 前端：实现定时器驱动的 token 主动续期——页面加载后启动定期检查（每分钟），当 access token 距过期时间低于阈值（如5分钟）时，自动用 refresh token 换取新 token，解决页面长时间打开但无操作时 token 静默过期的问题
+-- [113] [x] Bug 修复：access token 过期时前端直接 logout 而不尝试 refresh——应在 token 过期触发 logout 前，先检查 refresh token 是否有效并尝试换取新 access token；只有 refresh token 也过期（或 refresh 请求失败）时才执行 logout
 
 ## Fastify 配置
 

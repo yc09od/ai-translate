@@ -214,6 +214,29 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
 
+  // Dev-only: token expiry countdown
+  const isDev = process.env.NODE_ENV !== 'production';
+  const [tokenCountdown, setTokenCountdown] = useState('');
+  useEffect(() => {
+    if (!isDev) return;
+    function computeCountdown() {
+      const match = document.cookie.match(/(?:^|; )token=([^;]*)/);
+      if (!match) { setTokenCountdown('no token'); return; }
+      try {
+        const payload = JSON.parse(atob(decodeURIComponent(match[1]).split('.')[1]));
+        const secsLeft = (payload.exp as number) - Math.floor(Date.now() / 1000);
+        if (secsLeft <= 0) { setTokenCountdown('expired'); return; }
+        const h = Math.floor(secsLeft / 3600);
+        const m = Math.floor((secsLeft % 3600) / 60);
+        const s = secsLeft % 60;
+        setTokenCountdown(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`);
+      } catch { setTokenCountdown('err'); }
+    }
+    computeCountdown();
+    const id = setInterval(computeCountdown, 5000);
+    return () => clearInterval(id);
+  }, [isDev]);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   async function loadTopics() {
@@ -475,18 +498,25 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
         }}
       >
         {expanded && username && (
-          <span
-            style={{
-              color: 'rgba(255,255,255,0.85)',
-              fontSize: '13px',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '120px',
-            }}
-            title={username}
-          >
-            {username}
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+            <span
+              style={{
+                color: 'rgba(255,255,255,0.85)',
+                fontSize: '13px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '120px',
+              }}
+              title={username}
+            >
+              {username}
+            </span>
+            {isDev && tokenCountdown && (
+              <span style={{ color: 'rgba(255,255,100,0.75)', fontSize: '11px', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
+                {tokenCountdown}
+              </span>
+            )}
           </span>
         )}
         <IconButton
