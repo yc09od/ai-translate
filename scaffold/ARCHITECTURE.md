@@ -91,10 +91,8 @@
 **实现库**：`@fastify/websocket`
 
 **消息协议（客户端 → 服务端）**：
-```json
-{ "type": "audio_chunk", "data": "<base64 encoded PCM chunk>" }
-{ "type": "end" }
-```
+- **Binary frame（ArrayBuffer）**：原始语音数据块，每 250ms 发送一次；服务端每 5 秒将拼接后的 buffer 写入 `backend/public/recorder/<topicId>-<timestamp>.mp4`，写入后清空 buffer
+- **Text frame（String）**：来自 main panel 文字输入框的文本内容；服务端追加至 `backend/public/message.txt`
 
 **消息协议（服务端 → 客户端）**：
 ```json
@@ -103,13 +101,29 @@
 { "type": "error", "message": "..." }
 ```
 
+**前端录音行为**：
+- 点击 record 按钮时建立 WebSocket 连接
+- 通过 MediaRecorder API 采集麦克风音频，每 250ms 触发 `ondataavailable` 事件，将 binary chunk 通过 WebSocket 发送
+- 再次点击 record 按钮（停止录音）时关闭 WebSocket 连接
+
+**前端静音检测（Voice Activity Detection）**：
+- 录音过程中，利用已有的 `AnalyserNode` 实时读取音频频率数据（`getByteFrequencyData`）
+- 计算当前帧的平均音量；若平均音量低于阈值（如 10/255），则判定为静音帧
+- 当静音持续超过 1 秒时，通过 WebSocket 发送 `{ type: "end_utterance" }` 消息，通知后端本段语音结束
+- 发送后重置静音计时器，等待下一段语音开始
+
+**后端文件处理**：
+- 收到 binary frame → 拼接 buffer（不再使用定时器）
+- 收到 `end_utterance` JSON 消息 → 将当前累积的 buffer 写入 `backend/public/test/recorder/` 下一个新文件（文件名含时间 HH-MM-SS），写入后清空 buffer（保留 headerChunk）
+- 收到 text frame（非 JSON）→ 追加文本（含换行）至 `backend/test/message.txt`
+- 目录不存在时自动创建
+
 **处理流程**：
 1. 客户端建立 WebSocket 连接，携带 Bearer token（query param `token=xxx` 或 Authorization header）
 2. 服务端验证 token 和 topicId 归属
-3. 客户端持续发送 `audio_chunk`（PCM 数据）
-4. 服务端调用语音识别 API 断句 → 返回 `transcript`
-5. 服务端调用翻译 API → 返回 `translation`，同时保存到 MongoDB（TranslationRecord）
-6. 客户端发送 `end` 或断开连接时清理资源
+3. 客户端持续发送 binary 音频 chunk（每 250ms）或 `end_utterance` JSON 消息
+4. 服务端分别处理：binary → 拼接缓存；`end_utterance` → flush 并保存文件
+5. 连接关闭时将累积的 binary 数据写入录音文件，清理资源
 
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。

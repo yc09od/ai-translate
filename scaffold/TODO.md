@@ -173,9 +173,23 @@
 -- [103] [x] 后端：安装 `@fastify/websocket` 插件，在 `index.ts` 中注册
 -- [104] [x] 后端：创建 `routes/liveTranslation.ts`，实现 WebSocket 路由 `GET /topics/:topicId/translation/live`（鉴权、连接管理、消息收发框架）
 
-## pending things Start
+## 实时翻译 WebSocket 前端接入
 
+-- [105] [x] 前端：点击 record 按钮时，建立 WebSocket 连接至 `/topics/:topicId/translation/live`（携带 token），停止录音时关闭连接
+-- [106] [x] 前端：录音进行中，通过 MediaRecorder 每 250ms 触发 `ondataavailable`，将 binary chunk 通过 WebSocket 以 binary frame 发送
+-- [107] [x] 前端：main panel 文字输入框点击提交时，将文本以 text frame（字符串）通过同一 WebSocket 发送
+-- [108] [x] 后端：WebSocket 收到 binary frame 时，拼接 buffer；每 5 秒将累积的 buffer 写入 `backend/public/recorder/` 目录下的一个新音频文件（mp4/webm，文件名含时间戳），写入后清空 buffer
+-- [109] [x] 后端：WebSocket 收到 text frame（字符串）时，将文本追加至 `backend/public/message.txt`（目录不存在则自动创建）
+
+## 静音检测断句
+
+-- [110] [x] 前端：在录音过程中，利用 AnalyserNode 实时监测音量，使用相对阈值检测静音（当前音量 < 近 2 秒滑动峰值 × 20%），持续静音超过 1 秒时通过 WebSocket 发送 `{ type: "end_utterance" }` 消息，然后重置计时器
+-- [111] [x] 后端：移除 5 秒定时 flush interval；改为收到 `end_utterance` 消息时，将累积的 binary buffer 保存为一个新音频文件并清空 buffer（保留 headerChunk）
+
+## pending things Start
 ## pending things End
+
+-- [112] [ ] Bug 修复：VAD 静音检测阈值过严导致 end_utterance 从未触发——所有音频保存为一个文件。修复方案：在相对阈值基础上叠加绝对阈值下限（如 avg < 8 才判定为静音），同时适当提高 VAD_SILENCE_RATIO（如从 0.20 调至 0.35），并在前端添加 console.log 输出 end_utterance 触发日志以便验证
 
 ## still think，do not do any item after this line
 -- 读取流

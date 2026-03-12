@@ -93,13 +93,21 @@
 ```
 
 **WebSocket 消息协议（客户端 → 服务端）：**
-- `{ type: "audio_chunk", data: "<base64 PCM>" }` — 发送音频数据
-- `{ type: "end" }` — 通知音频结束
+- **Binary frame（ArrayBuffer）**：原始语音 binary chunk，每 250ms 发送一次（通过 MediaRecorder `ondataavailable`）
+- **Text frame（String）**：main panel 文字输入框输入的文本，直接作为字符串发送
 
 **WebSocket 消息协议（服务端 → 客户端）：**
 - `{ type: "transcript", text: "..." }` — 语音识别中间结果
 - `{ type: "translation", original: "...", translated: "...", recordId: "..." }` — 翻译完成
 - `{ type: "error", message: "..." }` — 错误通知
+
+**前端静音检测（VAD）：**
+- 利用 `AnalyserNode` 实时监测音量；静音持续超过 1 秒时，通过 WebSocket 发送 `{ type: "end_utterance" }`，通知后端本段语音结束
+
+**后端文件存储（开发阶段调试用）：**
+- 收到 binary → 拼接至 buffer（不再使用定时器切割）
+- 收到 `end_utterance` → 将当前 buffer 保存为一个音频文件（`<topicId>-HH-MM-SS.mp4`），清空 buffer
+- 收到 string（非 JSON）→ 追加至 `backend/test/message.txt`
 
 ---
 
