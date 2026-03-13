@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface TranslationItem {
   id: string;
   original: string;
@@ -12,8 +14,15 @@ interface TranslationListProps {
 }
 
 export default function TranslationList({ items }: TranslationListProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // [126] Auto-scroll to bottom whenever items change
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [items]);
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 0 24px', marginRight: '24px', marginTop: '16px', marginBottom: '16px' }}>
+    <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '0 12px 0 24px', marginRight: '24px', marginTop: '16px', marginBottom: '16px' }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }

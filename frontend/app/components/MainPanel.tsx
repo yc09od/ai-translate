@@ -31,9 +31,6 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [items, setItems] = useState<TranslationItem[]>([]);
   const [inputText, setInputText] = useState('');
-  // [124] Pending results for out-of-order translation responses: segmentId → result
-  const pendingResultsRef = useRef<Map<string, { original: string; translated: string }>>(new Map());
-
   const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -44,32 +41,9 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   // hark instance ref for cleanup
   const harkerRef = useRef<ReturnType<typeof hark> | null>(null);
 
-  // [124] Flush pending results in order: reveal loading cards only when all prior cards are revealed
-  const flushPending = () => {
-    const pending = pendingResultsRef.current;
-    setItems(prev => {
-      const next = [...prev];
-      let changed = false;
-      for (let i = 0; i < next.length; i++) {
-        if (next[i].loading) {
-          const result = pending.get(next[i].id);
-          if (result) {
-            pending.delete(next[i].id);
-            next[i] = { ...next[i], ...result, loading: false };
-            changed = true;
-          } else {
-            break; // First unresolved loading card — stop here, maintain order
-          }
-        }
-      }
-      return changed ? next : prev;
-    });
-  };
-
   // Load history when selected topic changes
   useEffect(() => {
     setItems([]);
-    pendingResultsRef.current.clear();
     if (!selectedTopic) return;
     getTranslations(selectedTopic.id).then((records) => {
       setItems(records.map((r, i) => ({ id: `history-${i}-${r.originalText.slice(0, 8)}`, original: r.originalText, translated: r.translatedText, loading: false })));
@@ -118,14 +92,19 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       harkerRef.current = harker;
       let hasSpeech = false;
 
+      // [125] Guard: speaking can fire multiple times before stopped_speaking due to
+      // audio fluctuations. Only create ONE card per utterance cycle.
+      let currentSegmentId: string | null = null;
+
       harker.on('speaking', () => {
         hasSpeech = true;
+        if (currentSegmentId !== null) return; // already tracking this utterance
         // [123] Generate segmentId, notify backend, create loading card
-        const segmentId = crypto.randomUUID();
+        currentSegmentId = crypto.randomUUID();
         if (wsRef.current?.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'segment_start', segmentId }));
+          wsRef.current.send(JSON.stringify({ type: 'segment_start', segmentId: currentSegmentId }));
         }
-        setItems(prev => [...prev, { id: segmentId, original: '', translated: '', loading: true }]);
+        setItems(prev => [...prev, { id: currentSegmentId!, original: '', translated: '', loading: true }]);
       });
       harker.on('stopped_speaking', () => {
         if (hasSpeech && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -133,6 +112,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
           console.log('[hark] end_utterance sent');
         }
         hasSpeech = false;
+        currentSegmentId = null; // reset for next utterance
       });
     } else {
       harkerRef.current?.stop();
@@ -185,11 +165,14 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
             const msg = JSON.parse(event.data as string) as { type: string; original?: string; translated?: string; segmentId?: string };
             if (msg.type === 'translation' && msg.original) {
               if (msg.segmentId) {
-                // [124] Store result and flush in order
-                pendingResultsRef.current.set(msg.segmentId, { original: msg.original, translated: msg.translated ?? '' });
-                flushPending();
+                // Reveal the matching loading card immediately, regardless of order
+                setItems(prev => prev.map(item =>
+                  item.id === msg.segmentId
+                    ? { ...item, original: msg.original!, translated: msg.translated ?? '', loading: false }
+                    : item
+                ));
               } else {
-                // Fallback: no segmentId (e.g. legacy or text input result)
+                // Fallback: no segmentId (e.g. text input result)
                 setItems(prev => [...prev, { id: crypto.randomUUID(), original: msg.original!, translated: msg.translated ?? '', loading: false }]);
               }
             }
