@@ -145,9 +145,7 @@ function TestContent() {
         };
 
         ws.onopen = () => {
-          const mimeType = MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')
-            ? 'audio/ogg;codecs=opus'
-            : 'audio/webm;codecs=opus';
+          const mimeType = 'audio/ogg;codecs=opus';
           const recorder = new MediaRecorder(s, { mimeType });
           mediaRecorderRef.current = recorder;
           recorder.ondataavailable = (e) => {

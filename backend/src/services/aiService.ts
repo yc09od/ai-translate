@@ -1,11 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// --- Config ---
-const GEMINI_MODEL = 'gemini-2.5-flash'
-const GEMINI_TEMPERATURE = 0
-const KIMI_MODEL = 'moonshot-v1-8k'
-const KIMI_API_URL = 'https://api.moonshot.cn/v1/chat/completions'
-const KIMI_TEMPERATURE = 0.3
+// --- Config (overridable via env) ---
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'
+const GEMINI_TEMPERATURE = parseFloat(process.env.GEMINI_TEMPERATURE ?? '0')
+const KIMI_MODEL = process.env.KIMI_MODEL ?? 'moonshot-v1-8k'
+const KIMI_API_URL = process.env.KIMI_API_URL ?? 'https://api.moonshot.cn/v1/chat/completions'
+const KIMI_TEMPERATURE = parseFloat(process.env.KIMI_TEMPERATURE ?? '0.3')
+const AUDIO_MIME_TYPE = process.env.AUDIO_MIME_TYPE ?? 'audio/ogg'
 const CJK_REGEX = /[\u4e00-\u9fff]/
 
 export interface TranslationResult {
@@ -105,11 +106,6 @@ export async function translateWithKimi(text: string): Promise<TranslationResult
 
 // --- Gemini audio transcribe + translate (streaming) ---
 
-const AUDIO_MIME_TYPE = 'audio/ogg'
-const AUDIO_PROMPT =
-  'Listen to this audio. Transcribe the speech, then translate it: ' +
-  'if the speech is in Chinese translate to English, if in English translate to Chinese. ' +
-  'Reply in exactly this format:\nOriginal: <transcribed text>\nTranslation: <translated text>'
 const instructionForAudio = `**Role:** High-Precision Real-Time Translation Engine.
 **Objective:** Perform bi-directional translation between Chinese and English only.
 **Operational Logic:**

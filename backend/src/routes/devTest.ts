@@ -113,7 +113,7 @@ export async function devTestRoutes(fastify: FastifyInstance) {
             audioChunks = []
 
             // Save audio to backend/test/<timestamp>.webm
-            const filename = `utterance_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`
+            const filename = `utterance_${new Date().toISOString().replace(/[:.]/g, '-')}.ogg`
             fs.mkdirSync(TEST_DIR, { recursive: true })
             fs.writeFileSync(path.join(TEST_DIR, filename), buffer)
             fastify.log.info(`[devTest] saved audio: ${filename}`)
