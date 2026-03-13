@@ -3,6 +3,7 @@ import { WebSocket } from '@fastify/websocket'
 import { RawData } from 'ws'
 import { getSession } from '../services/sessionStore'
 import { transcribeAndTranslateJson } from '../services/aiService'
+import { saveTranslation } from '../services/translationService'
 import fs from 'fs'
 import path from 'path'
 
@@ -100,6 +101,16 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
         try {
           const result = await transcribeAndTranslateJson(buffer)
           socket.send(JSON.stringify({ type: 'translation', original: result.original, translated: result.translated }))
+
+          // Fire-and-forget: save to MongoDB without blocking next utterance
+          if (result.original) {
+            saveTranslation({
+              topicId,
+              userId,
+              originalText: result.original,
+              translatedText: result.translated,
+            }).catch(err => fastify.log.error(`Failed to save TranslationRecord: ${err}`))
+          }
         } catch (err) {
           fastify.log.error(`AI translation error: topicId=${topicId} err=${err}`)
           socket.send(JSON.stringify({ type: 'error', message: String(err) }))

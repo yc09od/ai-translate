@@ -5,6 +5,7 @@ import hark from 'hark';
 import TopicHeader from './TopicHeader';
 import TranslationList from './TranslationList';
 import BottomInputBar from './BottomInputBar';
+import { getTranslations } from '../../lib/apiClient';
 
 interface MainPanelProps {
   selectedTopic: { id: string; title: string } | null;
@@ -15,11 +16,6 @@ interface TranslationPair {
   translated: string;
 }
 
-const MOCK_TRANSLATIONS: TranslationPair[] = [
-  { original: 'Welcome to the AI translation system.', translated: '欢迎使用 AI 翻译系统。' },
-  { original: 'Please speak clearly into the microphone.', translated: '请对着麦克风清晰地说话。' },
-  { original: 'The translation will appear in real time.', translated: '翻译结果将实时显示。' },
-];
 
 
 function getTokenFromCookie(): string {
@@ -31,7 +27,7 @@ function getTokenFromCookie(): string {
 export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [translations, setTranslations] = useState<TranslationPair[]>(MOCK_TRANSLATIONS);
+  const [translations, setTranslations] = useState<TranslationPair[]>([]);
   const [inputText, setInputText] = useState('');
 
   const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -43,6 +39,15 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
   // hark instance ref for cleanup
   const harkerRef = useRef<ReturnType<typeof hark> | null>(null);
+
+  // Load history when selected topic changes
+  useEffect(() => {
+    setTranslations([]);
+    if (!selectedTopic) return;
+    getTranslations(selectedTopic.id).then((records) => {
+      setTranslations(records.map((r) => ({ original: r.originalText, translated: r.translatedText })));
+    }).catch(() => { /* silent fail */ });
+  }, [selectedTopic?.id]);
 
   // Waveform animation
   useEffect(() => {
@@ -139,6 +144,15 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
         const token = getTokenFromCookie();
         const ws = new WebSocket(`${wsUrl}/topics/${selectedTopic.id}/translation/live?token=${token}`);
         wsRef.current = ws;
+
+        ws.onmessage = (event) => {
+          try {
+            const msg = JSON.parse(event.data as string) as { type: string; original?: string; translated?: string };
+            if (msg.type === 'translation' && msg.original) {
+              setTranslations((prev) => [...prev, { original: msg.original!, translated: msg.translated ?? '' }]);
+            }
+          } catch { /* ignore non-JSON */ }
+        };
 
         ws.onopen = () => {
           const recorder = new MediaRecorder(s);

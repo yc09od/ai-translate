@@ -108,8 +108,16 @@
 - 收到 binary → 拼接至 buffer（不再使用定时器切割）
 - 收到 `end_utterance` → 同时并发执行（互不等待）：
   1. 将当前 buffer 保存为音频文件（文件名含时间戳），清空 buffer（保留 header chunk）
-  2. 将 buffer 发送给 AI API，使用 pre-prompt 要求返回 JSON `{o: 原文, t: 译文}`，结果通过 WebSocket 推送前端
+  2. 将 buffer 发送给 AI API，使用 pre-prompt 要求返回 JSON `{o: 原文, t: 译文}`；AI 返回后将 original + translated **保存为 TranslationRecord（MongoDB，关联 topicId + userId）**，再通过 WebSocket 推送至前端
 - 收到 string（非 JSON）→ 追加至 `backend/test/message.txt`
+
+**前端实时展示翻译结果：**
+- Dashboard 页面 WebSocket 监听 `{ type: "translation" }` 消息
+- 收到时，将 `{ original, translated }` 实时追加到 main panel 展示区域（与现有条目一起显示）
+
+**前端加载历史记录：**
+- 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 获取该 topic 的历史翻译记录
+- 历史记录按时间顺序渲染到 main panel 展示区（之后实时收到的新条目继续追加）
 
 **Pre-prompt 配置文件**：
 - 位置：`backend/src/config/prompts.ts`

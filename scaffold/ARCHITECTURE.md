@@ -120,16 +120,21 @@
 - 收到 binary frame → 拼接 buffer（不再使用定时器）
 - 收到 `end_utterance` JSON 消息 → **并发执行**以下两个操作（互不等待）：
   1. 将当前累积的 buffer 写入音频文件（文件名含时间戳），清空 buffer（保留 headerChunk）
-  2. 将 buffer 发送给 AI API（使用 pre-prompt），解析返回的 `{o, t}` JSON，结果通过 WebSocket 推送至前端
+  2. 将 buffer 发送给 AI API（使用 pre-prompt），解析返回的 `{o, t}` JSON，**保存为 TranslationRecord（MongoDB）**，再通过 WebSocket 推送至前端
 - 收到 text frame（非 JSON）→ 追加文本（含换行）至 `backend/test/message.txt`
 - 目录不存在时自动创建
+
+**翻译历史 API**：
+- `GET /topics/:topicId/translations` — 分页查询指定 topic 的翻译历史（TranslationRecord 列表），按时间倒序
+- 前端在切换 topic 时调用此接口，将历史记录渲染到 main panel 展示区
 
 **处理流程**：
 1. 客户端建立 WebSocket 连接，携带 Bearer token（query param `token=xxx` 或 Authorization header）
 2. 服务端验证 token 和 topicId 归属
 3. 客户端持续发送 binary 音频 chunk（每 250ms）或 `end_utterance` JSON 消息
-4. 服务端分别处理：binary → 拼接缓存；`end_utterance` → 并发执行文件保存 + AI API 翻译
-5. 连接关闭时将累积的 binary 数据写入录音文件，清理资源
+4. 服务端分别处理：binary → 拼接缓存；`end_utterance` → 并发执行文件保存 + AI API 翻译 + 保存 TranslationRecord
+5. 翻译结果通过 WebSocket 推送前端，前端实时追加到展示区
+6. 连接关闭时将累积的 binary 数据写入录音文件，清理资源
 
 ### 2.4. 外部服务
 *   **语音识别 API**: 将音频流转换为文本的外部服务。

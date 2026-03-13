@@ -205,14 +205,11 @@
 -- [117] [x] 後端：創建 `backend/src/config/prompts.ts`，導出音頻翻譯的 pre-prompt（system instruction），要求 AI API 基於語言返回 JSON 格式 `{"o": "<原文>", "t": "<譯文>"}` 且不輸出其他任何內容. 
 -- [118] [x] 後端：在 `routes/liveTranslation.ts` 的 `end_utterance` 處理中，並發執行文件保存 + 調用 AI API（使用 prompts.ts 的 instructionForLiveAudio）；解析返回的 `{o, t}` JSON，通過 WebSocket 推送翻譯結果至前端；兩個操作互不等待
 
-## still think，do not do any item after this line
--- 读取流
-我们需要一个预prompt，只输出翻译之后的句子。
+## 翻譯歷史
 
-当api得到ai api返回的译文，我们需要第一，保存这个结果，同时也发送这个结果给前台。
-前台要渲染这个结果
-
-本地向量化FastEmbed
+-- [119] [x] 後端：`liveTranslation.ts` AI 翻譯成功後，將 `{originalText, translatedText, topicId, userId}` 保存為 TranslationRecord 寫入 MongoDB. 這個保存過程不能阻礙 AI翻譯的進程。意思就是，如果保存的時候，websocket有新的chunk進來。ai 翻譯要同時進行。
+-- [120] [x] 前端：Dashboard WebSocket 監聽 `{ type: "translation" }` 消息，實時將 `{original, translated}` 追加到 main panel 展示區域
+-- [121] [x] 前端：點擊 sidebar topic 時，調用 `GET /topics/:topicId/translations` 加載歷史翻譯記錄，在 main panel 中渲染歷史列表（之後實時新增的條目繼續追加）
 
 
 
