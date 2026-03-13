@@ -104,10 +104,16 @@
 **前端静音检测（VAD）：**
 - 利用 `AnalyserNode` 实时监测音量；静音持续超过 1 秒时，通过 WebSocket 发送 `{ type: "end_utterance" }`，通知后端本段语音结束
 
-**后端文件存储（开发阶段调试用）：**
+**后端文件存储 + AI 翻译（end_utterance 触发时并发执行）：**
 - 收到 binary → 拼接至 buffer（不再使用定时器切割）
-- 收到 `end_utterance` → 将当前 buffer 保存为一个音频文件（`<topicId>-HH-MM-SS.mp4`），清空 buffer
+- 收到 `end_utterance` → 同时并发执行（互不等待）：
+  1. 将当前 buffer 保存为音频文件（文件名含时间戳），清空 buffer（保留 header chunk）
+  2. 将 buffer 发送给 AI API，使用 pre-prompt 要求返回 JSON `{o: 原文, t: 译文}`，结果通过 WebSocket 推送前端
 - 收到 string（非 JSON）→ 追加至 `backend/test/message.txt`
+
+**Pre-prompt 配置文件**：
+- 位置：`backend/src/config/prompts.ts`
+- 定义 AI 音频翻译的 system instruction：检测语言后输出原文 + 对应方向的译文，仅返回 JSON 格式 `{"o": "<原文>", "t": "<译文>"}`，不输出其他任何内容
 
 ---
 

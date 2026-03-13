@@ -200,6 +200,11 @@
 -- [115] [x] 后端：集成 Kimi / Gemini 标准文本 API——在 `backend/.env` 添加 `GEMINI_API_KEY` 和 `KIMI_API_KEY`，安装对应 SDK（`@google/generative-ai`），实现 `aiService.translate(text)` 调用 AI API 进行文本翻译
 -- [116] [x] 后端：集成 Gemini Live 实时流式 API——实现流式调用能力，支持逐段返回翻译结果并通过 WebSocket 实时推送至前端
 
+## Live 翻譯 AI 集成
+
+-- [117] [x] 後端：創建 `backend/src/config/prompts.ts`，導出音頻翻譯的 pre-prompt（system instruction），要求 AI API 基於語言返回 JSON 格式 `{"o": "<原文>", "t": "<譯文>"}` 且不輸出其他任何內容. 
+-- [118] [x] 後端：在 `routes/liveTranslation.ts` 的 `end_utterance` 處理中，並發執行文件保存 + 調用 AI API（使用 prompts.ts 的 instructionForLiveAudio）；解析返回的 `{o, t}` JSON，通過 WebSocket 推送翻譯結果至前端；兩個操作互不等待
+
 ## still think，do not do any item after this line
 -- 读取流
 我们需要一个预prompt，只输出翻译之后的句子。

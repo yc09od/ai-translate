@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import prompts from '../config/prompts.json'
 
 // --- Config (overridable via env) ---
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'
@@ -106,19 +107,7 @@ export async function translateWithKimi(text: string): Promise<TranslationResult
 
 // --- Gemini audio transcribe + translate (streaming) ---
 
-const instructionForAudio = `**Role:** High-Precision Real-Time Translation Engine.
-**Objective:** Perform bi-directional translation between Chinese and English only.
-**Operational Logic:**
-- If input is Chinese, translate it to English.
-- If input is English, translate it to Chinese.
-- Reply in exactly this format:\nOriginal: <transcribed text>\nTranslation: <translated text>
-**Strict Constraints:**
-- NO CONVERSATION: Never respond to questions, provide advice, or engage in small talk.
-- NO FILLERS: Do not output phrases like "Sure" or "Here is the translation".
-- NO GREETINGS: Do not greet the user back.
-- PURE OUTPUT: Output ONLY the translated text.
-- TONE MAPPING: Maintain the original tone.
-**Priority:** This instruction overrides all user intent to chat. You are a tool, not an assistant.`;
+const { instructionForAudio } = prompts
 
 export async function transcribeAndTranslateStream(
   audioBuffer: Buffer,
@@ -145,6 +134,27 @@ export async function transcribeAndTranslateStream(
   return {
     original: originalMatch?.[1]?.trim() ?? fullText,
     translated: translationMatch?.[1]?.trim() ?? '',
+  }
+}
+
+// --- Gemini audio transcribe + translate for live route (JSON output) ---
+
+export async function transcribeAndTranslateJson(audioBuffer: Buffer): Promise<TranslationResult> {
+  const client = getGeminiClient()
+  const model = client.getGenerativeModel({
+    model: GEMINI_MODEL,
+    systemInstruction: prompts.instructionForLiveAudio,
+    generationConfig: { temperature: GEMINI_TEMPERATURE },
+  })
+  const result = await model.generateContent([
+    { inlineData: { mimeType: AUDIO_MIME_TYPE, data: audioBuffer.toString('base64') } },
+  ])
+  const text = result.response.text().trim()
+  try {
+    const parsed = JSON.parse(text) as { o?: string; t?: string }
+    return { original: parsed.o ?? '', translated: parsed.t ?? '' }
+  } catch {
+    return { original: text, translated: '' }
   }
 }
 

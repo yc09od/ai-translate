@@ -112,9 +112,15 @@
 - 当静音持续超过 1 秒时，通过 WebSocket 发送 `{ type: "end_utterance" }` 消息，通知后端本段语音结束
 - 发送后重置静音计时器，等待下一段语音开始
 
+**Pre-prompt 配置**：
+- 后端维护一个 pre-prompt 配置文件（如 `backend/src/config/prompts.ts`），定义发给 AI API 的 system instruction
+- 音频翻译 prompt 要求 AI API 基于检测到的语言，返回原文 + 译文，**仅输出 JSON 格式**：`{"o": "<原文>", "t": "<译文>"}`
+
 **后端文件处理**：
 - 收到 binary frame → 拼接 buffer（不再使用定时器）
-- 收到 `end_utterance` JSON 消息 → 将当前累积的 buffer 写入 `backend/public/test/recorder/` 下一个新文件（文件名含时间 HH-MM-SS），写入后清空 buffer（保留 headerChunk）
+- 收到 `end_utterance` JSON 消息 → **并发执行**以下两个操作（互不等待）：
+  1. 将当前累积的 buffer 写入音频文件（文件名含时间戳），清空 buffer（保留 headerChunk）
+  2. 将 buffer 发送给 AI API（使用 pre-prompt），解析返回的 `{o, t}` JSON，结果通过 WebSocket 推送至前端
 - 收到 text frame（非 JSON）→ 追加文本（含换行）至 `backend/test/message.txt`
 - 目录不存在时自动创建
 
@@ -122,7 +128,7 @@
 1. 客户端建立 WebSocket 连接，携带 Bearer token（query param `token=xxx` 或 Authorization header）
 2. 服务端验证 token 和 topicId 归属
 3. 客户端持续发送 binary 音频 chunk（每 250ms）或 `end_utterance` JSON 消息
-4. 服务端分别处理：binary → 拼接缓存；`end_utterance` → flush 并保存文件
+4. 服务端分别处理：binary → 拼接缓存；`end_utterance` → 并发执行文件保存 + AI API 翻译
 5. 连接关闭时将累积的 binary 数据写入录音文件，清理资源
 
 ### 2.4. 外部服务

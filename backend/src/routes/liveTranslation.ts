@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { WebSocket } from '@fastify/websocket'
 import { RawData } from 'ws'
 import { getSession } from '../services/sessionStore'
+import { transcribeAndTranslateJson } from '../services/aiService'
 import fs from 'fs'
 import path from 'path'
 
@@ -82,17 +83,26 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
       let audioChunks: Buffer[] = []
       let isFirstFlush = true
 
-      // [111] Flush triggered by end_utterance (no timer)
+      // [111][118] Flush triggered by end_utterance: concurrently save file + call AI
       async function flushOnUtterance() {
         if (audioChunks.length === 0) return
-        const toFlush = isFirstFlush ? audioChunks : [headerChunk!, ...audioChunks]
+        const chunks = isFirstFlush ? audioChunks : [headerChunk!, ...audioChunks]
         isFirstFlush = false
         audioChunks = []
+        const buffer = Buffer.concat(chunks)
+
+        // Fire-and-forget file save
+        flushAudioBuffer(topicId, [buffer])
+          .then(() => fastify.log.info(`Saved utterance file: topicId=${topicId}`))
+          .catch(err => fastify.log.error(`Failed to save utterance file: ${err}`))
+
+        // Call AI and push translation result to client
         try {
-          await flushAudioBuffer(topicId, toFlush)
-          fastify.log.info(`Saved utterance file: topicId=${topicId}`)
+          const result = await transcribeAndTranslateJson(buffer)
+          socket.send(JSON.stringify({ type: 'translation', original: result.original, translated: result.translated }))
         } catch (err) {
-          fastify.log.error(`Failed to save utterance file: ${err}`)
+          fastify.log.error(`AI translation error: topicId=${topicId} err=${err}`)
+          socket.send(JSON.stringify({ type: 'error', message: String(err) }))
         }
       }
 
