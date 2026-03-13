@@ -216,6 +216,8 @@
 -- [122] [x] 後端：WebSocket 協議擴展——接收 `{ type: "segment_start", segmentId }` 消息，記錄 segmentId 與當前 buffer 的對應關係；翻譯完成後，在 `{ type: "translation" }` 消息中附帶對應的 `segmentId`
 -- [123] [x] 前端：每段音頻（VAD end_utterance 觸發前）開始時生成唯一 segmentId，先通過 WebSocket 發送 `{ type: "segment_start", segmentId }`，同時在 main panel 展示區按順序創建 OT loading card（帶馬賽克/skeleton 效果）
 -- [124] [x] 前端：實現 OT loading card 有序揭示——後端 translation 消息含 segmentId，前端據此定位 card；即使結果亂序返回，也必須按音頻錄入順序依次揭示（前一段未顯示則排隊等待）
+-- [125] [ ] Bug 修復：多次說話時只有第一個 OT loading card 的馬賽克效果被正常揭示，後續 card 即使收到翻譯結果也維持馬賽克狀態——排查有序揭示隊列的清空/重置邏輯（pendingQueue、revealedCount 等狀態是否在每次 end_utterance 後正確推進）
+-- [126] [ ] 前端：展示區自動滾動至底部——每當有新對話 card 追加（實時翻譯或歷史記錄加載完畢）時，自動 scroll to bottom，確保最新內容始終可見
 
 
 

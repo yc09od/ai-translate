@@ -119,6 +119,7 @@
 **前端实时展示翻译结果：**
 - Dashboard 页面 WebSocket 监听 `{ type: "translation" }` 消息
 - 收到时，将 `{ original, translated }` 填入对应 segmentId 的 loading card，移除马赛克效果；若前一段 card 尚未揭示，则排队等待
+- 每当展示区新增对话内容（新 card 追加或历史记录加载完毕）时，自动滚动至展示区底部，确保最新内容始终可见
 
 **前端加载历史记录：**
 - 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 获取该 topic 的历史翻译记录

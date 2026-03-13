@@ -1,5 +1,8 @@
 import 'dotenv/config'
 import { exec } from 'child_process'
+import { existsSync, writeFileSync, rmSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
 import Fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import fjwt from '@fastify/jwt'
 import fcookie from '@fastify/cookie'
@@ -108,7 +111,15 @@ const start = async () => {
     server.decorate('redis', redis)
     await server.listen({ port: PORT, host: '0.0.0.0' })
     if (process.env.NODE_ENV !== 'production') {
-      exec(`start http://localhost:${PORT}/docs`)
+      const lockFile = join(tmpdir(), 'ai-translate-docs.lock')
+      if (!existsSync(lockFile)) {
+        writeFileSync(lockFile, '')
+        const cleanup = () => rmSync(lockFile, { force: true })
+        process.once('exit', cleanup)
+        process.once('SIGINT', cleanup)
+        process.once('SIGTERM', cleanup)
+        exec(`start http://localhost:${PORT}/docs`)
+      }
     }
   } catch (err) {
     server.log.error(err)
