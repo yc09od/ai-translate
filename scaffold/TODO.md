@@ -211,5 +211,11 @@
 -- [120] [x] 前端：Dashboard WebSocket 監聽 `{ type: "translation" }` 消息，實時將 `{original, translated}` 追加到 main panel 展示區域
 -- [121] [x] 前端：點擊 sidebar topic 時，調用 `GET /topics/:topicId/translations` 加載歷史翻譯記錄，在 main panel 中渲染歷史列表（之後實時新增的條目繼續追加）
 
+## OT Loading Card 有序揭示
+
+-- [122] [x] 後端：WebSocket 協議擴展——接收 `{ type: "segment_start", segmentId }` 消息，記錄 segmentId 與當前 buffer 的對應關係；翻譯完成後，在 `{ type: "translation" }` 消息中附帶對應的 `segmentId`
+-- [123] [x] 前端：每段音頻（VAD end_utterance 觸發前）開始時生成唯一 segmentId，先通過 WebSocket 發送 `{ type: "segment_start", segmentId }`，同時在 main panel 展示區按順序創建 OT loading card（帶馬賽克/skeleton 效果）
+-- [124] [x] 前端：實現 OT loading card 有序揭示——後端 translation 消息含 segmentId，前端據此定位 card；即使結果亂序返回，也必須按音頻錄入順序依次揭示（前一段未顯示則排隊等待）
+
 
 

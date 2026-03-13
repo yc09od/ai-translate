@@ -11,9 +11,11 @@ interface MainPanelProps {
   selectedTopic: { id: string; title: string } | null;
 }
 
-interface TranslationPair {
+interface TranslationItem {
+  id: string;
   original: string;
   translated: string;
+  loading: boolean;
 }
 
 
@@ -27,8 +29,10 @@ function getTokenFromCookie(): string {
 export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [translations, setTranslations] = useState<TranslationPair[]>([]);
+  const [items, setItems] = useState<TranslationItem[]>([]);
   const [inputText, setInputText] = useState('');
+  // [124] Pending results for out-of-order translation responses: segmentId → result
+  const pendingResultsRef = useRef<Map<string, { original: string; translated: string }>>(new Map());
 
   const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -40,12 +44,35 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   // hark instance ref for cleanup
   const harkerRef = useRef<ReturnType<typeof hark> | null>(null);
 
+  // [124] Flush pending results in order: reveal loading cards only when all prior cards are revealed
+  const flushPending = () => {
+    const pending = pendingResultsRef.current;
+    setItems(prev => {
+      const next = [...prev];
+      let changed = false;
+      for (let i = 0; i < next.length; i++) {
+        if (next[i].loading) {
+          const result = pending.get(next[i].id);
+          if (result) {
+            pending.delete(next[i].id);
+            next[i] = { ...next[i], ...result, loading: false };
+            changed = true;
+          } else {
+            break; // First unresolved loading card — stop here, maintain order
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  };
+
   // Load history when selected topic changes
   useEffect(() => {
-    setTranslations([]);
+    setItems([]);
+    pendingResultsRef.current.clear();
     if (!selectedTopic) return;
     getTranslations(selectedTopic.id).then((records) => {
-      setTranslations(records.map((r) => ({ original: r.originalText, translated: r.translatedText })));
+      setItems(records.map((r, i) => ({ id: `history-${i}-${r.originalText.slice(0, 8)}`, original: r.originalText, translated: r.translatedText, loading: false })));
     }).catch(() => { /* silent fail */ });
   }, [selectedTopic?.id]);
 
@@ -91,7 +118,15 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       harkerRef.current = harker;
       let hasSpeech = false;
 
-      harker.on('speaking', () => { hasSpeech = true; });
+      harker.on('speaking', () => {
+        hasSpeech = true;
+        // [123] Generate segmentId, notify backend, create loading card
+        const segmentId = crypto.randomUUID();
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ type: 'segment_start', segmentId }));
+        }
+        setItems(prev => [...prev, { id: segmentId, original: '', translated: '', loading: true }]);
+      });
       harker.on('stopped_speaking', () => {
         if (hasSpeech && wsRef.current?.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({ type: 'end_utterance' }));
@@ -116,7 +151,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(text);
     }
-    setTranslations((prev) => [...prev, { original: text, translated: '（翻译中...）' }]);
+    setItems(prev => [...prev, { id: crypto.randomUUID(), original: text, translated: '（翻译中...）', loading: false }]);
     setInputText('');
   };
 
@@ -147,9 +182,16 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
         ws.onmessage = (event) => {
           try {
-            const msg = JSON.parse(event.data as string) as { type: string; original?: string; translated?: string };
+            const msg = JSON.parse(event.data as string) as { type: string; original?: string; translated?: string; segmentId?: string };
             if (msg.type === 'translation' && msg.original) {
-              setTranslations((prev) => [...prev, { original: msg.original!, translated: msg.translated ?? '' }]);
+              if (msg.segmentId) {
+                // [124] Store result and flush in order
+                pendingResultsRef.current.set(msg.segmentId, { original: msg.original, translated: msg.translated ?? '' });
+                flushPending();
+              } else {
+                // Fallback: no segmentId (e.g. legacy or text input result)
+                setItems(prev => [...prev, { id: crypto.randomUUID(), original: msg.original!, translated: msg.translated ?? '', loading: false }]);
+              }
             }
           } catch { /* ignore non-JSON */ }
         };
@@ -184,7 +226,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   return (
     <main className="flex flex-1 flex-col h-screen overflow-hidden">
       <TopicHeader selectedTopic={selectedTopic} isRecording={isRecording} barRefs={barRefs} />
-      <TranslationList translations={translations} />
+      <TranslationList items={items} />
       <BottomInputBar
         isRecording={isRecording}
         toggleRecording={toggleRecording}

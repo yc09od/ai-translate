@@ -93,13 +93,19 @@
 **消息协议（客户端 → 服务端）**：
 - **Binary frame（ArrayBuffer）**：原始语音数据块，每 250ms 发送一次；服务端每 5 秒将拼接后的 buffer 写入 `backend/public/recorder/<topicId>-<timestamp>.mp4`，写入后清空 buffer
 - **Text frame（String）**：来自 main panel 文字输入框的文本内容；服务端追加至 `backend/public/message.txt`
+- **`{ type: "segment_start", segmentId: "<uuid>" }`**：前端在每段音频（即每次 end_utterance 触发前）开始发送前，先发送此消息，携带唯一 segmentId；服务端记录 segmentId 与当前累积 buffer 的对应关系
 
 **消息协议（服务端 → 客户端）**：
 ```json
 { "type": "transcript", "text": "..." }
-{ "type": "translation", "original": "...", "translated": "...", "recordId": "..." }
+{ "type": "translation", "original": "...", "translated": "...", "recordId": "...", "segmentId": "..." }
 { "type": "error", "message": "..." }
 ```
+
+**OT Loading Card 有序揭示机制**：
+- 前端在发送 `segment_start` 消息时，同步在 main panel 中创建一个对应的 OT loading card（带马赛克/skeleton 效果），按发送顺序排列
+- 后端翻译完成后，在 `translation` 消息中附带 `segmentId`，前端据此定位对应 loading card
+- **有序揭示**：即使后端翻译结果乱序返回（如第 2 段比第 1 段先完成），第 2 段 card 的马赛克效果也必须等第 1 段 card 翻译结果显示完成后，才能揭示；确保展示区内容始终按音频录入顺序显示
 
 **前端录音行为**：
 - 点击 record 按钮时建立 WebSocket 连接

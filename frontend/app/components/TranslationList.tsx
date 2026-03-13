@@ -1,18 +1,32 @@
 'use client';
 
-interface TranslationPair {
+interface TranslationItem {
+  id: string;
   original: string;
   translated: string;
+  loading: boolean;
 }
 
 interface TranslationListProps {
-  translations: TranslationPair[];
+  items: TranslationItem[];
 }
 
-export default function TranslationList({ translations }: TranslationListProps) {
+export default function TranslationList({ items }: TranslationListProps) {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: '0 12px 0 24px', marginRight: '24px', marginTop: '16px', marginBottom: '16px' }}>
-      {translations.length === 0 ? (
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .ot-skeleton {
+          background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.4s infinite;
+          border-radius: 4px;
+        }
+      `}</style>
+      {items.length === 0 ? (
         <p style={{ color: '#cbd5e1', fontSize: '15px', margin: 0 }}>翻译内容将显示在此处...</p>
       ) : (
         <div
@@ -23,15 +37,25 @@ export default function TranslationList({ translations }: TranslationListProps) 
             overflow: 'hidden',
           }}
         >
-          {translations.map((pair, i) => (
-            <div key={i} style={{ padding: '10px 16px' }}>
-              <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: '#1e293b' }}>
-                <span style={{ fontWeight: 700, color: '#94a3b8' }}>O:</span> {pair.original}
-              </p>
-              <p style={{ margin: '2px 0 0', fontSize: '14px', lineHeight: 1.6, color: '#3730a3' }}>
-                <span style={{ fontWeight: 700, color: '#6366f1' }}>T:</span> {pair.translated}
-              </p>
-              {i < translations.length - 1 && (
+          {items.map((item, i) => (
+            <div key={item.id} style={{ padding: '10px 16px' }}>
+              {item.loading ? (
+                // [123] Loading card: show shimmer skeleton while awaiting translation
+                <>
+                  <div className="ot-skeleton" style={{ height: '14px', width: '70%', marginBottom: '6px' }} />
+                  <div className="ot-skeleton" style={{ height: '14px', width: '50%' }} />
+                </>
+              ) : (
+                <>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6, color: '#1e293b' }}>
+                    <span style={{ fontWeight: 700, color: '#94a3b8' }}>O:</span> {item.original}
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: '14px', lineHeight: 1.6, color: '#3730a3' }}>
+                    <span style={{ fontWeight: 700, color: '#6366f1' }}>T:</span> {item.translated}
+                  </p>
+                </>
+              )}
+              {i < items.length - 1 && (
                 <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '10px' }} />
               )}
             </div>

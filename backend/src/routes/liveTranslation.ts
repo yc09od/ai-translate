@@ -83,9 +83,11 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
       let headerChunk: Buffer | null = null
       let audioChunks: Buffer[] = []
       let isFirstFlush = true
+      // [122] Track the segmentId associated with the current utterance buffer
+      let currentSegmentId: string | null = null
 
       // [111][118] Flush triggered by end_utterance: concurrently save file + call AI
-      async function flushOnUtterance() {
+      async function flushOnUtterance(segmentId: string | null) {
         if (audioChunks.length === 0) return
         const chunks = isFirstFlush ? audioChunks : [headerChunk!, ...audioChunks]
         isFirstFlush = false
@@ -100,7 +102,8 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
         // Call AI and push translation result to client
         try {
           const result = await transcribeAndTranslateJson(buffer)
-          socket.send(JSON.stringify({ type: 'translation', original: result.original, translated: result.translated }))
+          // [122] Attach segmentId so frontend can match result to the loading card
+          socket.send(JSON.stringify({ type: 'translation', original: result.original, translated: result.translated, segmentId }))
 
           // Fire-and-forget: save to MongoDB without blocking next utterance
           if (result.original) {
@@ -137,9 +140,13 @@ export async function liveTranslationRoutes(fastify: FastifyInstance) {
           fastify.log.info(`WS message: type=${message.type} topicId=${topicId} userId=${userId}`)
 
           switch (message.type) {
+            case 'segment_start':
+              // [122] Record segmentId for the utterance about to be recorded
+              currentSegmentId = message.segmentId as string
+              break
             case 'end_utterance':
               // [111] Frontend VAD detected silence — save current buffer as a file
-              await flushOnUtterance()
+              await flushOnUtterance(currentSegmentId)
               break
             case 'ping':
               socket.send(JSON.stringify({ type: 'pong' }))

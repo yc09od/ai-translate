@@ -111,9 +111,14 @@
   2. 将 buffer 发送给 AI API，使用 pre-prompt 要求返回 JSON `{o: 原文, t: 译文}`；AI 返回后将 original + translated **保存为 TranslationRecord（MongoDB，关联 topicId + userId）**，再通过 WebSocket 推送至前端
 - 收到 string（非 JSON）→ 追加至 `backend/test/message.txt`
 
+**前端 OT Loading Card 与有序揭示：**
+- 每段音频开始时，前端生成唯一 segmentId，通过 WebSocket 发送 `{ type: "segment_start", segmentId }` 消息，同时在 main panel 中按顺序创建一个 OT loading card（带马赛克/skeleton 占位效果）
+- 后端翻译完成后，在 `{ type: "translation" }` 消息中附带 `segmentId`，前端据此定位对应 loading card
+- **有序揭示保证**：即使后端翻译结果乱序返回（如第 2 段比第 1 段先完成），第 2 段 card 的马赛克效果也必须等第 1 段 card 的翻译结果显示完成后才能揭示；所有 card 按音频录入顺序依次显示
+
 **前端实时展示翻译结果：**
 - Dashboard 页面 WebSocket 监听 `{ type: "translation" }` 消息
-- 收到时，将 `{ original, translated }` 实时追加到 main panel 展示区域（与现有条目一起显示）
+- 收到时，将 `{ original, translated }` 填入对应 segmentId 的 loading card，移除马赛克效果；若前一段 card 尚未揭示，则排队等待
 
 **前端加载历史记录：**
 - 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 获取该 topic 的历史翻译记录
