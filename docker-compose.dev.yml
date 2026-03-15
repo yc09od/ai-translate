@@ -1,0 +1,64 @@
+# Local development — mounts source code, supports hot reload
+# Usage: docker compose -f docker-compose.dev.yml up
+#
+# NOTE: Backend env vars MONGODB_URI and REDIS_URL are overridden below
+# to use Docker service names instead of localhost.
+# All other backend env vars are loaded from backend/.env
+
+services:
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      - frontend_next:/app/.next
+    ports:
+      - "3000:3000"
+    command: sh -c "yarn install && yarn dev"
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+
+  backend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    ports:
+      - "8000:8000"
+    command: sh -c "yarn install && yarn dev"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override localhost URLs to use Docker service names
+      - MONGODB_URI=mongodb://mongodb:27017/ai-translate
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  frontend_node_modules:
+  frontend_next:
+  backend_node_modules:
+  mongodb_data:
+  redis_data:

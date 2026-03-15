@@ -208,6 +208,13 @@
 -- [134] [x] 前端：將 Sidebar、MainPanel、TopicHeader、BottomInputBar 等組件的靜態文案替換為語言字典引用，實現中英文切換
 -- [135] [x] 前端：在 setting button group 中添加「語言/Language」切換選項，點擊後在中文/英文之間切換。初始语言为英文
 
+## Docker 容器化
+
+-- [136] [x] 前端：添加 `frontend/Dockerfile`，multi-stage build（builder 阶段 `next build` 启用 standalone output，runner 阶段基于 `node:alpine` 仅运行 `.next/standalone`）
+-- [137] [x] 后端：添加 `backend/Dockerfile`，multi-stage build（builder 阶段 `tsc` 编译，runner 阶段基于 `node:alpine` 仅安装生产依赖 + 运行编译产物）
+-- [138] [x] 根目录：添加 `docker-compose.dev.yml`，包含 frontend、backend、mongodb、redis 四个服务，前后端挂载源码支持热更新
+-- [139] [x] 根目录：添加 `docker-compose.yml`（Coolify 生产用），仅包含 frontend 和 backend 服务，配置 restart 策略和 healthcheck，环境变量由 Coolify 平台注入
+
 ## 翻譯歷史分頁
 
 -- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢

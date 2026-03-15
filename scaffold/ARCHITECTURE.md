@@ -181,7 +181,37 @@ sequenceDiagram
 
 ## 4. 部署
 
-该应用程序将使用现代 CI/CD 实践进行部署。
-*   **前端**: Next.js 应用程序将部署到像 Vercel 这样的静态托管服务或类似平台。
-*   **后端**: Node.js 后端将使用 Docker 进行容器化，并部署到像 AWS、Google Cloud 或 Azure 这样的云提供商。
-*   **数据库**: 将使用云提供商的托管数据库服务来管理 MongoDB 和 Redis，以确保可伸缩性和可靠性。
+### 4.1. Docker 容器化
+
+**前端 Dockerfile（`frontend/Dockerfile`）**
+- Multi-stage build：
+  - `builder` 阶段：`next build`，启用 `output: 'standalone'`
+  - `runner` 阶段：基于 `node:alpine`，仅复制 `.next/standalone` + `.next/static` + `public`
+- 暴露端口：`3000`
+
+**后端 Dockerfile（`backend/Dockerfile`）**
+- Multi-stage build：
+  - `builder` 阶段：安装全部依赖，执行 `tsc` 编译
+  - `runner` 阶段：基于 `node:alpine`，仅安装生产依赖 + 复制编译产物
+- 暴露端口：`8000`
+
+### 4.2. Docker Compose 配置
+
+**本地开发（`docker-compose.dev.yml`）**
+- 服务：`frontend`、`backend`、`mongodb`、`redis`
+- 前后端挂载源码目录，支持热更新（`next dev` / `ts-node-dev`）
+- MongoDB 使用 `mongo:7` 镜像，端口 `27017`
+- Redis 使用 `redis:alpine` 镜像，端口 `6379`
+- 环境变量通过各子目录 `.env` 文件注入
+
+**生产环境（`docker-compose.yml`，适用于 Coolify）**
+- 服务：`frontend`、`backend`（数据库使用外部托管服务）
+- 配置 `restart: unless-stopped` 和健康检查（`healthcheck`）
+- 环境变量通过 Coolify 平台注入（不打包 `.env` 文件）
+- 前端依赖后端（`depends_on`），通过内部网络通信
+
+### 4.3. 目标部署平台
+
+*   **前端**: Next.js standalone 模式，Docker 容器部署至 Coolify
+*   **后端**: Node.js 编译产物，Docker 容器部署至 Coolify
+*   **数据库**: 外部托管的 MongoDB 和 Redis（生产环境不在 compose 中管理）

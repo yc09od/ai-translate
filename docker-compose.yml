@@ -1,0 +1,90 @@
+# Production — for Coolify deployment
+# Usage: docker compose up --build
+#
+# Environment variables are injected by Coolify — do NOT commit .env files.
+# Required backend vars: PORT, JWT_SECRET,
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID,
+#   MICROSOFT_CLIENT_SECRET, FRONTEND_URL, CORS_ORIGINS,
+#   GEMINI_API_KEY, KIMI_API_KEY
+# (MONGODB_URI and REDIS_URL are set automatically via service names below)
+# Required frontend vars: NEXT_PUBLIC_API_URL, NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+#   NEXT_PUBLIC_GOOGLE_REDIRECT_URI, NEXT_PUBLIC_GOOGLE_OAUTH_URL,
+#   NEXT_PUBLIC_HOTMAIL_CLIENT_ID, NEXT_PUBLIC_HOTMAIL_REDIRECT_URI,
+#   NEXT_PUBLIC_HOTMAIL_OAUTH_URL
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:3000"
+    env_file:
+      - ./frontend/.env.docker
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env.docker
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongodb:27017/ai-translate
+      - REDIS_URL=redis://redis:6379
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  default:
+    driver: bridge

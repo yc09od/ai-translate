@@ -152,9 +152,11 @@
 
 ## 部署方案
 
-- **前端**：部署至 Vercel 或类似静态托管平台
-- **后端**：Docker 容器化，部署至 AWS / Google Cloud / Azure
-- **数据库**：使用云托管的 MongoDB 和 Redis 服务
+- **前端**：Next.js standalone 模式，Docker 容器化，部署至 Coolify
+- **后端**：TypeScript 编译后 Docker 容器化，部署至 Coolify
+- **数据库**：使用外部托管的 MongoDB 和 Redis 服务（生产环境不在 compose 中管理）
+- **本地开发**：`docker-compose.dev.yml` 包含前端、后端、MongoDB、Redis 四个服务，支持热更新
+- **生产部署**：`docker-compose.yml` 仅包含前端和后端服务，环境变量通过 Coolify 平台注入
 
 ---
 
