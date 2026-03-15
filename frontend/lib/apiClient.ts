@@ -138,10 +138,17 @@ export async function reorderTopics(items: { id: string; order: number }[]): Pro
   await client.put('/topics/reorder', items);
 }
 
-// [121] Get translation history for a topic
-export async function getTranslations(topicId: string, page = 1, limit = 50): Promise<{ originalText: string; translatedText: string }[]> {
-  const res = await client.get(`/topics/${topicId}/translations`, { params: { page, limit } });
-  return (res.data.records as { originalText: string; translatedText: string }[]).reverse();
+// [121][127] Get translation history for a topic (cursor-based pagination)
+export async function getTranslations(
+  topicId: string,
+  limit = 10,
+  before?: string
+): Promise<{ records: { originalText: string; translatedText: string; timestamp: string }[]; total: number }> {
+  const params: Record<string, string | number> = { limit };
+  if (before) params.before = before;
+  const res = await client.get(`/topics/${topicId}/translations`, { params });
+  const records = (res.data.records as { originalText: string; translatedText: string; timestamp: string }[]).reverse();
+  return { records, total: res.data.total };
 }
 
 export default client;

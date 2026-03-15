@@ -31,6 +31,10 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [items, setItems] = useState<TranslationItem[]>([]);
   const [inputText, setInputText] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+  const [loadedCount, setLoadedCount] = useState(0);
+  const [oldestTimestamp, setOldestTimestamp] = useState<string | null>(null);
+  const [scrollTrigger, setScrollTrigger] = useState(0);
   const barRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -41,14 +45,36 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   // hark instance ref for cleanup
   const harkerRef = useRef<ReturnType<typeof hark> | null>(null);
 
-  // Load history when selected topic changes
+  // [128] Load history when selected topic changes (default 10 records)
   useEffect(() => {
     setItems([]);
+    setTotalCount(0);
+    setLoadedCount(0);
+    setOldestTimestamp(null);
     if (!selectedTopic) return;
-    getTranslations(selectedTopic.id).then((records) => {
-      setItems(records.map((r, i) => ({ id: `history-${i}-${r.originalText.slice(0, 8)}`, original: r.originalText, translated: r.translatedText, loading: false })));
+    getTranslations(selectedTopic.id, 10).then(({ records, total }) => {
+      setItems(records.map((r) => ({ id: `history-${r.timestamp}`, original: r.originalText, translated: r.translatedText, loading: false })));
+      setTotalCount(total);
+      setLoadedCount(records.length);
+      if (records.length > 0) setOldestTimestamp(records[0].timestamp);
+      setScrollTrigger(t => t + 1);
     }).catch(() => { /* silent fail */ });
   }, [selectedTopic?.id]);
+
+  // [129] Load previous N records (prepend to top)
+  const handleLoadPrevious = async (count: number) => {
+    if (!selectedTopic || !oldestTimestamp) return;
+    const { records } = await getTranslations(selectedTopic.id, count, oldestTimestamp);
+    const mapped = records.map((r) => ({ id: `history-${r.timestamp}`, original: r.originalText, translated: r.translatedText, loading: false }));
+    setItems(prev => [...mapped, ...prev]);
+    setLoadedCount(c => c + records.length);
+    if (records.length > 0) setOldestTimestamp(records[0].timestamp);
+  };
+
+  const handleLoadAll = () => {
+    const remaining = totalCount - loadedCount;
+    if (remaining > 0) handleLoadPrevious(remaining);
+  };
 
   // Waveform animation
   useEffect(() => {
@@ -175,6 +201,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
                 // Fallback: no segmentId (e.g. text input result)
                 setItems(prev => [...prev, { id: crypto.randomUUID(), original: msg.original!, translated: msg.translated ?? '', loading: false }]);
               }
+              setScrollTrigger(t => t + 1);
             }
           } catch { /* ignore non-JSON */ }
         };
@@ -209,7 +236,13 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   return (
     <main className="flex flex-1 flex-col h-screen overflow-hidden">
       <TopicHeader selectedTopic={selectedTopic} isRecording={isRecording} barRefs={barRefs} />
-      <TranslationList items={items} />
+      <TranslationList
+        items={items}
+        hasMore={loadedCount < totalCount}
+        onLoadPrev={() => handleLoadPrevious(10)}
+        onLoadAll={handleLoadAll}
+        scrollTrigger={scrollTrigger}
+      />
       <BottomInputBar
         isRecording={isRecording}
         toggleRecording={toggleRecording}

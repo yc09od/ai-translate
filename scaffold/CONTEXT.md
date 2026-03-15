@@ -121,9 +121,13 @@
 - 收到时，将 `{ original, translated }` 填入对应 segmentId 的 loading card，移除马赛克效果；若前一段 card 尚未揭示，则排队等待
 - 每当展示区新增对话内容（新 card 追加或历史记录加载完毕）时，自动滚动至展示区底部，确保最新内容始终可见
 
-**前端加载历史记录：**
-- 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 获取该 topic 的历史翻译记录
+**前端加载历史记录（分页）：**
+- 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 默认只获取最近 10 条历史翻译记录
 - 历史记录按时间顺序渲染到 main panel 展示区（之后实时收到的新条目继续追加）
+- 若历史记录超过 10 条，在展示区**顶部**显示两个按钮：
+  - **「查看之前十条」**：加载前一页 10 条记录，追加到展示区顶部
+  - **「查看之前所有记录」**：一次性加载全部剩余历史记录，追加到展示区顶部
+- 当所有历史记录已全部加载后，隐藏上述按钮
 
 **Pre-prompt 配置文件**：
 - 位置：`backend/src/config/prompts.ts`

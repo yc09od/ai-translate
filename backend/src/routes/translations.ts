@@ -76,8 +76,8 @@ export async function translationRoutes(fastify: FastifyInstance) {
         querystring: {
           type: 'object',
           properties: {
-            page: { type: 'integer', default: 1 },
-            limit: { type: 'integer', default: 20 },
+            limit: { type: 'integer', default: 10 },
+            before: { type: 'string' },
           },
         },
         response: {
@@ -99,8 +99,6 @@ export async function translationRoutes(fastify: FastifyInstance) {
                 },
               },
               total: { type: 'integer' },
-              page: { type: 'integer' },
-              limit: { type: 'integer' },
             },
           },
         },
@@ -109,8 +107,8 @@ export async function translationRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest) => {
       const { topicId } = request.params as { topicId: string }
-      const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number }
-      return getTranslationsByTopicId(topicId, page, limit)
+      const { limit = 10, before } = request.query as { limit?: number; before?: string }
+      return getTranslationsByTopicId(topicId, limit, before)
     }
   )
 }

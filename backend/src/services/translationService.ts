@@ -26,29 +26,29 @@ export async function saveTranslation(data: {
 export interface PaginatedTranslations {
   records: CachedTranslationRecord[]
   total: number
-  page: number
-  limit: number
 }
 
+// [127] Cursor-based pagination: `before` is an ISO timestamp; returns records older than that point.
 export async function getTranslationsByTopicId(
   topicId: string,
-  page: number,
-  limit: number
+  limit: number,
+  before?: string
 ): Promise<PaginatedTranslations> {
-  // Only cache first page with default limit
-  if (page === 1) {
+  // Only cache the initial load (no before cursor)
+  if (!before) {
     const cached = await getTranslationCache(topicId)
     if (cached) {
-      return { records: cached, total: cached.length, page, limit }
+      return { records: cached.records.slice(0, limit), total: cached.total }
     }
   }
 
-  const skip = (page - 1) * limit
+  const query: Record<string, unknown> = { topicId: new Types.ObjectId(topicId) }
+  if (before) {
+    query.timestamp = { $lt: new Date(before) }
+  }
+
   const [docs, total] = await Promise.all([
-    TranslationRecord.find({ topicId: new Types.ObjectId(topicId) })
-      .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit),
+    TranslationRecord.find(query).sort({ timestamp: -1 }).limit(limit),
     TranslationRecord.countDocuments({ topicId: new Types.ObjectId(topicId) }),
   ])
 
@@ -61,9 +61,9 @@ export async function getTranslationsByTopicId(
     timestamp: d.timestamp.toISOString(),
   }))
 
-  if (page === 1) {
-    await setTranslationCache(topicId, records)
+  if (!before) {
+    await setTranslationCache(topicId, { records, total })
   }
 
-  return { records, total, page, limit }
+  return { records, total }
 }

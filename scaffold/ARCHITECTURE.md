@@ -132,6 +132,9 @@
 
 **翻译历史 API**：
 - `GET /topics/:topicId/translations` — 分页查询指定 topic 的翻译历史（TranslationRecord 列表），按时间倒序
+  - 分页参数：`limit`（每页条数，默认 10）、`before`（翻译记录 timestamp/id，返回此时间点之前的记录，用于向前翻页）
+  - 前端默认请求最近 10 条；若有更多记录，展示区顶部显示"查看之前十条"和"查看之前所有记录"按钮
+  - 点击"查看之前十条"：带 `before` 参数请求前一页；点击"查看之前所有记录"：带 `limit=all` 或不限 limit 请求全部剩余记录
 - 前端在切换 topic 时调用此接口，将历史记录渲染到 main panel 展示区
 
 **处理流程**：

@@ -11,23 +11,28 @@ export interface CachedTranslationRecord {
   timestamp: string
 }
 
+export interface TranslationCacheData {
+  records: CachedTranslationRecord[]
+  total: number
+}
+
 function key(topicId: string) {
   return `translations:${topicId}`
 }
 
 export async function setTranslationCache(
   topicId: string,
-  records: CachedTranslationRecord[]
+  data: TranslationCacheData
 ): Promise<void> {
-  await redis.set(key(topicId), JSON.stringify(records), 'EX', TRANSLATION_CACHE_TTL)
+  await redis.set(key(topicId), JSON.stringify(data), 'EX', TRANSLATION_CACHE_TTL)
 }
 
 export async function getTranslationCache(
   topicId: string
-): Promise<CachedTranslationRecord[] | null> {
+): Promise<TranslationCacheData | null> {
   const raw = await redis.get(key(topicId))
   if (!raw) return null
-  return JSON.parse(raw) as CachedTranslationRecord[]
+  return JSON.parse(raw) as TranslationCacheData
 }
 
 export async function deleteTranslationCache(topicId: string): Promise<void> {
