@@ -39,6 +39,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { logoutUser, getTopics, createTopic, deleteTopic, updateTopicTitle, reorderTopics } from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
+import { toggleLanguage } from '@/lib/store/languageSlice';
+import { useLanguage } from '@/lib/i18n';
+import LanguageIcon from '@mui/icons-material/Language';
 import type { RootState } from '@/lib/store/store';
 
 interface Topic {
@@ -211,6 +214,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const editInputRef = useRef<HTMLInputElement>(null);
   const cancelBlurRef = useRef(false);
 
+  const { t, lang } = useLanguage();
   const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
 
@@ -353,7 +357,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
         >
           {expanded && (
             <span style={{ color: 'white', fontWeight: 600, fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              AI 实时翻译
+              {t.sidebarTitle}
             </span>
           )}
           <IconButton
@@ -375,7 +379,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
             {/* Topic 过滤输入框 */}
             <input
               type="text"
-              placeholder="搜索 topic..."
+              placeholder={t.searchTopicPlaceholder}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               style={{
@@ -398,7 +402,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="Topic 名称..."
+                  placeholder={t.newTopicPlaceholder}
                   value={newTopicTitle}
                   onChange={(e) => setNewTopicTitle(e.target.value)}
                   onBlur={handleInputBlur}
@@ -455,7 +459,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
                 }}
               >
                 <AddIcon fontSize="small" />
-                新增 Topic
+                {t.addTopic}
               </button>
             )}
 
@@ -541,7 +545,32 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
             }}
           >
             <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
-            User Profile
+            {t.userProfile}
+          </MenuItem>
+          <MenuItem
+            onClick={() => dispatch(toggleLanguage())}
+            sx={{ justifyContent: 'space-between', gap: 1 }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <LanguageIcon fontSize="small" />
+              {t.language}
+            </span>
+            <span style={{ display: 'flex', borderRadius: '999px', overflow: 'hidden', border: '1px solid #c7d2fe', flexShrink: 0, fontSize: '11px', fontWeight: 600 }}>
+              {(['en', 'zh'] as const).map((l) => (
+                <span
+                  key={l}
+                  style={{
+                    padding: '2px 8px',
+                    background: lang === l ? '#6366f1' : 'transparent',
+                    color: lang === l ? '#fff' : '#6366f1',
+                    transition: 'background 0.2s, color 0.2s',
+                    userSelect: 'none',
+                  }}
+                >
+                  {l === 'en' ? 'EN' : '中'}
+                </span>
+              ))}
+            </span>
           </MenuItem>
           <MenuItem
             onClick={async () => {
@@ -550,19 +579,19 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
             }}
           >
             <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
-            Logout
+            {t.logout}
           </MenuItem>
         </Menu>
       </div>
 
       {/* [89] 删除确认 dialog */}
       <Dialog open={Boolean(deleteConfirmId)} onClose={() => setDeleteConfirmId(null)}>
-        <DialogTitle>删除 Topic</DialogTitle>
+        <DialogTitle>{t.deleteTopicTitle}</DialogTitle>
         <DialogContent>
-          <DialogContentText>确定要删除这个 Topic 吗？此操作不可撤销。</DialogContentText>
+          <DialogContentText>{t.deleteTopicConfirm}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmId(null)}>取消</Button>
+          <Button onClick={() => setDeleteConfirmId(null)}>{t.cancel}</Button>
           <Button
             color="error"
             onClick={async () => {
@@ -580,7 +609,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
               }
             }}
           >
-            删除
+            {t.delete}
           </Button>
         </DialogActions>
       </Dialog>

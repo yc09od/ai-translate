@@ -3,6 +3,7 @@
 import Button from '@mui/material/Button';
 import MicIcon from '@mui/icons-material/Mic';
 import SendIcon from '@mui/icons-material/Send';
+import { useLanguage } from '@/lib/i18n';
 
 interface BottomInputBarProps {
   isRecording: boolean;
@@ -13,6 +14,7 @@ interface BottomInputBarProps {
 }
 
 export default function BottomInputBar({ isRecording, toggleRecording, inputText, setInputText, handleSubmit }: BottomInputBarProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 bg-white">
       <Button
@@ -47,7 +49,7 @@ export default function BottomInputBar({ isRecording, toggleRecording, inputText
                 flexShrink: 0,
               }}
             />
-            Recording
+            {t.recording}
           </span>
         ) : (
           <MicIcon />
@@ -57,7 +59,7 @@ export default function BottomInputBar({ isRecording, toggleRecording, inputText
 
       <input
         type="text"
-        placeholder="输入文字进行翻译..."
+        placeholder={t.inputPlaceholder}
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
@@ -91,7 +93,7 @@ export default function BottomInputBar({ isRecording, toggleRecording, inputText
           '&:disabled': { background: '#e2e8f0', color: '#94a3b8' },
         }}
       >
-        提交
+        {t.submit}
       </Button>
     </div>
   );

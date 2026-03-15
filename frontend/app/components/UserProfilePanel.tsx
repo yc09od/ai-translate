@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import client from '@/lib/apiClient';
+import { useLanguage } from '@/lib/i18n';
 
 interface UserProfilePanelProps {
   onClose: () => void;
@@ -17,6 +18,7 @@ interface UserInfo {
 }
 
 export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
+  const { t } = useLanguage();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [nameInput, setNameInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -36,9 +38,9 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
     try {
       const res = await client.patch<UserInfo>('/users/me', { name: nameInput.trim() });
       setUser(res.data);
-      setSaveMsg('Saved!');
+      setSaveMsg(t.saved);
     } catch {
-      setSaveMsg('Save failed. Please try again.');
+      setSaveMsg(t.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -51,7 +53,7 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
         <IconButton onClick={onClose} size="small">
           <ArrowBackIcon />
         </IconButton>
-        <span style={{ fontSize: '20px', fontWeight: 600 }}>User Profile</span>
+        <span style={{ fontSize: '20px', fontWeight: 600 }}>{t.userProfileTitle}</span>
       </div>
 
       {/* Content */}
@@ -59,7 +61,7 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
         <div className="flex flex-col" style={{ gap: '24px', maxWidth: '400px' }}>
           {/* Email (read-only) */}
           <div className="flex flex-col" style={{ gap: '6px' }}>
-            <label style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>Email</label>
+            <label style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>{t.email}</label>
             <div
               style={{
                 fontSize: '15px',
@@ -76,7 +78,7 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
           {/* Name (editable) */}
           <div className="flex flex-col" style={{ gap: '6px' }}>
             <label style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>
-              User Name
+              {t.userName}
             </label>
             <input
               type="text"
@@ -111,7 +113,7 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
                 cursor: saving || !nameInput.trim() ? 'not-allowed' : 'pointer',
               }}
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? t.saving : t.save}
             </button>
             {saveMsg && (
               <span style={{ fontSize: '14px', color: saveMsg === 'Saved!' ? '#16a34a' : '#dc2626' }}>
@@ -121,7 +123,7 @@ export default function UserProfilePanel({ onClose }: UserProfilePanelProps) {
           </div>
         </div>
       ) : (
-        <div style={{ color: '#9ca3af', fontSize: '14px' }}>Loading...</div>
+        <div style={{ color: '#9ca3af', fontSize: '14px' }}>{t.loading}</div>
       )}
     </div>
   );

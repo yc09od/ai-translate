@@ -1,6 +1,7 @@
 'use client';
 
 import { RefObject, useState, useRef, useEffect } from 'react';
+import { useLanguage } from '@/lib/i18n';
 
 interface TopicHeaderProps {
   selectedTopic: { id: string; title: string } | null;
@@ -11,6 +12,7 @@ interface TopicHeaderProps {
 }
 
 export default function TopicHeader({ selectedTopic, isRecording, barRefs, onExport, isExporting }: TopicHeaderProps) {
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +36,7 @@ export default function TopicHeader({ selectedTopic, isRecording, barRefs, onExp
   return (
     <div style={{ padding: '24px 24px 0', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
       <h1 style={{ fontSize: '22px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
-        {selectedTopic?.title ?? '请选择或新建 Topic'}
+        {selectedTopic?.title ?? t.selectOrCreateTopic}
       </h1>
       <div style={{ display: 'flex', alignItems: 'center', gap: '3px', height: '24px' }}>
         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
@@ -59,7 +61,7 @@ export default function TopicHeader({ selectedTopic, isRecording, barRefs, onExp
           <button
             onClick={() => !isExporting && setMenuOpen(o => !o)}
             disabled={isExporting}
-            title="导出历史记录"
+            title={t.exportHistoryTitle}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -80,7 +82,7 @@ export default function TopicHeader({ selectedTopic, isRecording, barRefs, onExp
               <line x1="12" y1="18" x2="12" y2="12"/>
               <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
-            {isExporting ? '导出中...' : '导出'}
+            {isExporting ? t.exporting : t.export}
             {!isExporting && (
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9"/>
@@ -119,7 +121,7 @@ export default function TopicHeader({ selectedTopic, isRecording, barRefs, onExp
                   onMouseEnter={e => (e.currentTarget.style.background = '#f1f5f9')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  {type === 'pdf' ? '📄 导出为 PDF' : '📝 导出为 TXT'}
+                  {type === 'pdf' ? t.exportAsPdf : t.exportAsTxt}
                 </button>
               ))}
             </div>

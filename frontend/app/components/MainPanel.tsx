@@ -7,6 +7,7 @@ import TranslationList from './TranslationList';
 import BottomInputBar from './BottomInputBar';
 import { getTranslations } from '../../lib/apiClient';
 import { exportToPdf, exportToTxt } from '../../lib/exportToPdf';
+import { useLanguage } from '../../lib/i18n';
 
 interface MainPanelProps {
   selectedTopic: { id: string; title: string } | null;
@@ -28,6 +29,7 @@ function getTokenFromCookie(): string {
 }
 
 export default function MainPanel({ selectedTopic }: MainPanelProps) {
+  const { t } = useLanguage();
   const [isRecording, setIsRecording] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [items, setItems] = useState<TranslationItem[]>([]);
@@ -194,7 +196,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(text);
     }
-    setItems(prev => [...prev, { id: crypto.randomUUID(), original: text, translated: '（翻译中...）', loading: false }]);
+    setItems(prev => [...prev, { id: crypto.randomUUID(), original: text, translated: t.translating, loading: false }]);
     setInputText('');
   };
 
@@ -213,12 +215,12 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
         wsRef.current = null;
         setIsDraining(false);
         setItems(prev => prev.map(item =>
-          item.loading ? { ...item, original: '（翻译超时）', translated: '', loading: false } : item
+          item.loading ? { ...item, original: t.translationTimeout, translated: '', loading: false } : item
         ));
       }, 15000);
     } else {
       if (!selectedTopic) {
-        alert('请先选择一个 Topic 再开始录音。');
+        alert(t.selectTopicBeforeRecording);
         return;
       }
       try {
@@ -278,7 +280,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
         setIsRecording(true);
       } catch {
-        alert('无法访问麦克风，请检查浏览器权限。');
+        alert(t.microphoneError);
       }
     }
   };

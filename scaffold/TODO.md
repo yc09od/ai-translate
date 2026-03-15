@@ -204,9 +204,9 @@
 
 ## 界面双语化
 
--- [133] [ ] 前端：建立語言字典（`lib/i18n.ts`），定義中文/英文兩套靜態文案，提供 `useLanguage()` hook，將偏好持久化到 localStorage.
--- [134] [ ] 前端：將 Sidebar、MainPanel、TopicHeader、BottomInputBar 等組件的靜態文案替換為語言字典引用，實現中英文切換
--- [135] [ ] 前端：在 setting button group 中添加「語言/Language」切換選項，點擊後在中文/英文之間切換。初始语言为英文
+-- [133] [x] 前端：建立語言字典（`lib/i18n.ts`），定義中文/英文兩套靜態文案，提供 `useLanguage()` hook，將偏好持久化到 localStorage.
+-- [134] [x] 前端：將 Sidebar、MainPanel、TopicHeader、BottomInputBar 等組件的靜態文案替換為語言字典引用，實現中英文切換
+-- [135] [x] 前端：在 setting button group 中添加「語言/Language」切換選項，點擊後在中文/英文之間切換。初始语言为英文
 
 ## 翻譯歷史分頁
 

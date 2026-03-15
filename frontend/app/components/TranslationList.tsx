@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useLanguage } from '@/lib/i18n';
 
 interface TranslationItem {
   id: string;
@@ -18,6 +19,7 @@ interface TranslationListProps {
 }
 
 export default function TranslationList({ items, hasMore, onLoadPrev, onLoadAll, scrollTrigger }: TranslationListProps) {
+  const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // [126] Auto-scroll to bottom only when new content is appended (not when loading older records)
@@ -40,7 +42,7 @@ export default function TranslationList({ items, hasMore, onLoadPrev, onLoadAll,
         }
       `}</style>
       {items.length === 0 && !hasMore ? (
-        <p style={{ color: '#cbd5e1', fontSize: '15px', margin: 0 }}>翻译内容将显示在此处...</p>
+        <p style={{ color: '#cbd5e1', fontSize: '15px', margin: 0 }}>{t.translationEmpty}</p>
       ) : (
         <>
           {/* [128][129] Load previous buttons */}
@@ -58,7 +60,7 @@ export default function TranslationList({ items, hasMore, onLoadPrev, onLoadAll,
                   cursor: 'pointer',
                 }}
               >
-                查看之前十条
+                {t.loadPrevious10}
               </button>
               <button
                 onClick={onLoadAll}
@@ -72,7 +74,7 @@ export default function TranslationList({ items, hasMore, onLoadPrev, onLoadAll,
                   cursor: 'pointer',
                 }}
               >
-                查看之前所有记录
+                {t.loadAllPrevious}
               </button>
             </div>
           )}

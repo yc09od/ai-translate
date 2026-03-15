@@ -2,15 +2,17 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import sidebarReducer from './sidebarSlice';
+import languageReducer from './languageSlice';
 
 const rootReducer = combineReducers({
   sidebar: sidebarReducer,
+  language: languageReducer,
 });
 
 const persistConfig = {
   key: 'ai-translate',
   storage,
-  whitelist: ['sidebar'],
+  whitelist: ['sidebar', 'language'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
