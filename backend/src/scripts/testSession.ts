@@ -6,7 +6,7 @@ async function run() {
   await connectRedis()
 
   const userId = 'user_test_001'
-  const sessionData = { userId, email: 'test@example.com', provider: 'google' }
+  const sessionData = { userId, email: 'test@example.com', provider: 'google', refreshToken: 'test-refresh-token' }
 
   // 1. Set session (login)
   await setSession(userId, sessionData)
