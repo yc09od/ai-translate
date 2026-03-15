@@ -6,6 +6,7 @@ import TopicHeader from './TopicHeader';
 import TranslationList from './TranslationList';
 import BottomInputBar from './BottomInputBar';
 import { getTranslations } from '../../lib/apiClient';
+import { exportToPdf, exportToTxt } from '../../lib/exportToPdf';
 
 interface MainPanelProps {
   selectedTopic: { id: string; title: string } | null;
@@ -31,6 +32,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [items, setItems] = useState<TranslationItem[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [loadedCount, setLoadedCount] = useState(0);
   const [oldestTimestamp, setOldestTimestamp] = useState<string | null>(null);
@@ -74,6 +76,27 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const handleLoadAll = () => {
     const remaining = totalCount - loadedCount;
     if (remaining > 0) handleLoadPrevious(remaining);
+  };
+
+  // [131] Export all translation history for the current topic (PDF or TXT)
+  const handleExport = async (type: 'pdf' | 'txt') => {
+    if (!selectedTopic || isExporting) return;
+    setIsExporting(true);
+    try {
+      const { records } = await getTranslations(selectedTopic.id, totalCount || 9999);
+      const mapped = records.map(r => ({
+        originalText: r.originalText,
+        translatedText: r.translatedText,
+        timestamp: r.timestamp,
+      }));
+      if (type === 'pdf') {
+        await exportToPdf(selectedTopic.title, mapped);
+      } else {
+        exportToTxt(selectedTopic.title, mapped);
+      }
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Waveform animation
@@ -235,7 +258,7 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
 
   return (
     <main className="flex flex-1 flex-col h-screen overflow-hidden">
-      <TopicHeader selectedTopic={selectedTopic} isRecording={isRecording} barRefs={barRefs} />
+      <TopicHeader selectedTopic={selectedTopic} isRecording={isRecording} barRefs={barRefs} onExport={handleExport} isExporting={isExporting} />
       <TranslationList
         items={items}
         hasMore={loadedCount < totalCount}

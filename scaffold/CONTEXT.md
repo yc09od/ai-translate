@@ -17,7 +17,8 @@
 - 英文 ↔ 中文双向翻译
 - 逐句实时显示翻译结果
 - 创建和管理主题（如"cosc1908 课程"），每次只能有一个活动主题
-- 保存并查看各主题的翻译历史（含原文和译文）
+- 保存并查看各主题的翻译历史（含原文和译文），支持分页加载（默认最近10条）
+- 将当前 topic 的翻译历史导出为 PDF 文件（含 topic 标题、原文/译文、时间戳）
 - 支持 Google / Hotmail OAuth 登录
 
 ---
@@ -120,6 +121,11 @@
 - Dashboard 页面 WebSocket 监听 `{ type: "translation" }` 消息
 - 收到时，将 `{ original, translated }` 填入对应 segmentId 的 loading card，移除马赛克效果；若前一段 card 尚未揭示，则排队等待
 - 每当展示区新增对话内容（新 card 追加或历史记录加载完毕）时，自动滚动至展示区底部，确保最新内容始终可见
+
+**导出 PDF：**
+- main panel 的 Topic Header 区域提供「导出 PDF」按钮
+- 点击后加载该 topic 全部翻译历史，客户端使用 `jspdf` 生成 PDF 并触发浏览器下载
+- PDF 内容包含：topic 标题、每条记录的原文（O）和译文（T）、时间戳
 
 **前端加载历史记录（分页）：**
 - 用户点击 sidebar 中某个 topic 时，调用 `GET /topics/:topicId/translations` 默认只获取最近 10 条历史翻译记录

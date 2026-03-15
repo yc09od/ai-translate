@@ -193,6 +193,13 @@
 
 ## 翻譯歷史分頁
 
+## 导出历史为 PDF
+
+-- [130] [x] 前端：安装 `jspdf`，实现 `exportToPdf(topicTitle, records)` 函数，生成含 topic 标题、每条原文/译文及时间戳的 PDF 并触发下载
+-- [131] [x] 前端：在 main panel Topic Header 区域添加「导出 PDF」图标按钮；点击后调用 `GET /topics/:topicId/translations?limit=<total>` 加载全部历史，再调用 exportToPdf 下载
+
+## 翻譯歷史分頁
+
 -- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢
 -- [128] [x] 前端：切換 topic 時默認只加載最近 10 條歷史記錄；若後端返回有更多記錄，在展示區頂部顯示「查看之前十條」和「查看之前所有記錄」兩個按鈕
 -- [129] [x] 前端：「查看之前十條」點擊後帶 before 參數請求前一頁並追加到展示區頂部；「查看之前所有記錄」點擊後一次加載全部剩餘記錄並追加到頂部；全部加載完成後隱藏兩個按鈕
