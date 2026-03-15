@@ -198,6 +198,16 @@
 -- [130] [x] 前端：安装 `jspdf`，实现 `exportToPdf(topicTitle, records)` 函数，生成含 topic 标题、每条原文/译文及时间戳的 PDF 并触发下载
 -- [131] [x] 前端：在 main panel Topic Header 区域添加「导出 PDF」图标按钮；点击后调用 `GET /topics/:topicId/translations?limit=<total>` 加载全部历史，再调用 exportToPdf 下载
 
+## Bug 修復：停止錄音後 Loading Card 未清除
+
+-- [132] [x] 前端：停止錄音時，將 items 中所有仍處於 loading=true 狀態的 OT loading card 強制設為已完成（顯示「翻譯中斷」提示或直接移除），避免永久 skeleton 狀態
+
+## 界面双语化
+
+-- [133] [ ] 前端：建立語言字典（`lib/i18n.ts`），定義中文/英文兩套靜態文案，提供 `useLanguage()` hook，將偏好持久化到 localStorage.
+-- [134] [ ] 前端：將 Sidebar、MainPanel、TopicHeader、BottomInputBar 等組件的靜態文案替換為語言字典引用，實現中英文切換
+-- [135] [ ] 前端：在 setting button group 中添加「語言/Language」切換選項，點擊後在中文/英文之間切換。初始语言为英文
+
 ## 翻譯歷史分頁
 
 -- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢

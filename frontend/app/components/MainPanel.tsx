@@ -33,6 +33,8 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
   const [items, setItems] = useState<TranslationItem[]>([]);
   const [inputText, setInputText] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isDraining, setIsDraining] = useState(false);
+  const drainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [loadedCount, setLoadedCount] = useState(0);
   const [oldestTimestamp, setOldestTimestamp] = useState<string | null>(null);
@@ -98,6 +100,18 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       setIsExporting(false);
     }
   };
+
+  // [132] When draining, close the WS as soon as all loading cards are resolved
+  useEffect(() => {
+    if (!isDraining) return;
+    const hasLoading = items.some(item => item.loading);
+    if (!hasLoading) {
+      if (drainTimerRef.current) clearTimeout(drainTimerRef.current);
+      wsRef.current?.close();
+      wsRef.current = null;
+      setIsDraining(false);
+    }
+  }, [items, isDraining]);
 
   // Waveform animation
   useEffect(() => {
@@ -191,15 +205,28 @@ export default function MainPanel({ selectedTopic }: MainPanelProps) {
       mediaRecorderRef.current = null;
       stream?.getTracks().forEach((t) => t.stop());
       setStream(null);
-      wsRef.current?.close();
-      wsRef.current = null;
       setIsRecording(false);
+      // [132] Keep WS open to drain pending translations; force-close after 15s
+      setIsDraining(true);
+      drainTimerRef.current = setTimeout(() => {
+        wsRef.current?.close();
+        wsRef.current = null;
+        setIsDraining(false);
+        setItems(prev => prev.map(item =>
+          item.loading ? { ...item, original: '（翻译超时）', translated: '', loading: false } : item
+        ));
+      }, 15000);
     } else {
       if (!selectedTopic) {
         alert('请先选择一个 Topic 再开始录音。');
         return;
       }
       try {
+        // Cancel any lingering drain from a previous session
+        if (drainTimerRef.current) clearTimeout(drainTimerRef.current);
+        if (wsRef.current) { wsRef.current.close(); wsRef.current = null; }
+        setIsDraining(false);
+
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
         setStream(s);
 
