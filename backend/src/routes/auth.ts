@@ -1,6 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { findByEmail, createUser, findById } from "../services/userService";
-import { setSession, deleteSession, setRefreshToken, getRefreshToken, deleteRefreshToken } from "../services/sessionStore";
+import {
+  setSession,
+  deleteSession,
+  setRefreshToken,
+  getRefreshToken,
+  deleteRefreshToken,
+} from "../services/sessionStore";
 
 async function exchangeGoogleCode(
   code: string,
@@ -63,6 +69,10 @@ export async function authRoutes(fastify: FastifyInstance) {
       const { oauthProvider } = request.params as { oauthProvider: string };
       const { code } = request.query as { code: string };
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:60001";
+      const backendPort =
+        process.env.NODE_ENV === "production"
+          ? process.env.BACKEND_PORT
+          : process.env.BACKEND_PORT || 60000;
 
       if (oauthProvider !== "google") {
         return reply
@@ -70,10 +80,9 @@ export async function authRoutes(fastify: FastifyInstance) {
           .send({ error: `Unsupported provider: ${oauthProvider}` });
       }
 
-      const redirectPath =
-        process.env.GOOGLE_REDIRECT_PATH || "/oauth/google/callback";
-      const redirectUri = `${request.protocol}://${request.hostname}:${process.env.BACKEND_PORT || 60000}${redirectPath}`;
-      fastify.log.debug(`\n\n*******Exchanging code for user info with redirect URI: ${redirectUri}\n\n`);
+      const redirectUri =
+        process.env.GOOGLE_REDIRECT_URL ||
+        `${request.protocol}://${request.hostname}${backendPort ? ":" + backendPort : ""}${process.env.GOOGLE_REDIRECT_PATH || "/oauth/google/callback"}`;
       const { email, name } = await exchangeGoogleCode(code, redirectUri);
 
       let user = await findByEmail(email);
@@ -90,13 +99,36 @@ export async function authRoutes(fastify: FastifyInstance) {
         { userId, type: "refresh" },
         { expiresIn: "30d" },
       );
-      await setSession(userId, { userId, email, provider: "google", refreshToken });
+      await setSession(userId, {
+        userId,
+        email,
+        provider: "google",
+        refreshToken,
+      });
       await setRefreshToken(userId, refreshToken);
 
       const isProd = process.env.NODE_ENV === "production";
-      const cookieBase = { sameSite: "strict" as const, secure: isProd, path: "/" };
-      reply.setCookie("token", token, { ...cookieBase, httpOnly: false, maxAge: 3600 });
-      reply.setCookie("refreshToken", refreshToken, { ...cookieBase, httpOnly: true, maxAge: 2592000 });
+      const cookieBase = {
+        sameSite: "lax" as const,
+        secure: isProd,
+        path: "/",
+        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
+      };
+
+      fastify.log.info(
+        `\n\n*******Testing: ${token}\n\n`,
+      );
+
+      reply.setCookie("token", token, {
+        ...cookieBase,
+        httpOnly: false,
+        maxAge: 3600,
+      });
+      reply.setCookie("refreshToken", refreshToken, {
+        ...cookieBase,
+        httpOnly: true,
+        maxAge: 2592000,
+      });
 
       return reply.redirect(`${frontendUrl}/dashboard`);
     },
@@ -109,7 +141,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       schema: {
         tags: ["Auth"],
         summary: "刷新 Access Token",
-        description: "使用 HttpOnly cookie 中的 refresh token 签发新的 access token。",
+        description:
+          "使用 HttpOnly cookie 中的 refresh token 签发新的 access token。",
         response: {
           200: {
             type: "object",
@@ -128,7 +161,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       let payload: { userId: string; type: string };
       try {
-        payload = fastify.jwt.verify(refreshToken) as { userId: string; type: string };
+        payload = fastify.jwt.verify(refreshToken) as {
+          userId: string;
+          type: string;
+        };
       } catch {
         return reply.status(401).send({ error: "Invalid refresh token" });
       }
@@ -151,15 +187,21 @@ export async function authRoutes(fastify: FastifyInstance) {
         { userId: payload.userId, email: user.email, provider: user.provider },
         { expiresIn: "1h" },
       );
-      await setSession(payload.userId, { userId: payload.userId, email: user.email, provider: user.provider, refreshToken });
+      await setSession(payload.userId, {
+        userId: payload.userId,
+        email: user.email,
+        provider: user.provider,
+        refreshToken,
+      });
 
       const isProd = process.env.NODE_ENV === "production";
       reply.setCookie("token", newToken, {
-        sameSite: "strict",
+        sameSite: "lax",
         secure: isProd,
         path: "/",
         httpOnly: false,
         maxAge: 3600,
+        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
       });
 
       return { success: true };

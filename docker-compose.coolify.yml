@@ -1,12 +1,11 @@
-# Production — for Coolify deployment
-# Usage: docker compose up --build
+# Coolify deployment — use this file in Coolify's "Docker Compose" source type.
 #
 # Environment variables are injected by Coolify — do NOT commit .env files.
 # Required backend vars: PORT, JWT_SECRET,
 #   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID,
 #   MICROSOFT_CLIENT_SECRET, FRONTEND_URL, CORS_ORIGINS,
 #   GEMINI_API_KEY, KIMI_API_KEY
-# (MONGODB_URI and REDIS_URL are set automatically via service names below)
+# (MONGODB_URI and REDIS_URL are auto-set via service names below)
 # Required frontend vars: NEXT_PUBLIC_API_URL, NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 #   NEXT_PUBLIC_GOOGLE_REDIRECT_URI, NEXT_PUBLIC_GOOGLE_OAUTH_URL,
 #   NEXT_PUBLIC_HOTMAIL_CLIENT_ID, NEXT_PUBLIC_HOTMAIL_REDIRECT_URI,
@@ -80,7 +79,3 @@ services:
 volumes:
   mongodb_data:
   redis_data:
-
-networks:
-  default:
-    driver: bridge
