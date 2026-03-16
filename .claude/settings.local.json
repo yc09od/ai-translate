@@ -3,7 +3,18 @@
     "allow": [
       "Bash(ls \"C:\\\\Users\\\\horst\\\\.claude\\\\projects\\\\c--projects-ai-translate\\\\memory\"\" 2>/dev/null || echo \"Directory does not exist \")",
       "Bash(xargs grep:*)",
-      "Bash(ls c:/projects/ai-translate/*.md)"
+      "Bash(ls c:/projects/ai-translate/*.md)",
+      "Bash(ls ~/.claude/*.json)",
+      "Bash(where hostinger-api-mcp:*)",
+      "Bash(claude mcp:*)",
+      "mcp__claude_ai_Gmail__gmail_get_profile",
+      "Bash(where claude:*)",
+      "mcp__hostinger-api__VPS_getVirtualMachinesV1",
+      "Bash(where plink:*)",
+      "Bash(plink -ssh root@187.124.226.145 -pw \"Jierdeliren@hostinger2026\" -batch -hostkey \"SHA256:urYcYhkYcTDcVfuHotLjnsDr1yJgDl0Hqrv7sn479Mo\" \"mkdir -p /home/horst/.ssh && echo ''ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIJNjMnCBk0dANufLo9tjN2AJwjqaAEcn3rnvvizjaku horst_default_ssh_ppk'' >> /home/horst/.ssh/authorized_keys && chmod 700 /home/horst/.ssh && chmod 600 /home/horst/.ssh/authorized_keys && chown -R horst:horst /home/horst/.ssh && echo ''Done''\")",
+      "Bash(plink -ssh root@187.124.226.145 -pw \"Jierdeliren@hostinger2026\" -batch -hostkey \"SHA256:urYcYhkYcTDcVfuHotLjnsDr1yJgDl0Hqrv7sn479Mo\" \"sed -i ''s/^#*PasswordAuthentication.*/PasswordAuthentication no/'' /etc/ssh/sshd_config && sed -i ''s/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/'' /etc/ssh/sshd_config && systemctl restart sshd && echo ''Done''\")",
+      "Bash(\"/c/Program Files/PuTTY/puttygen.exe\" \"C:/Users/horst/.ssh/hosrt_default_ssh\" -P \"1300\" -o \"C:/Users/horst/.ssh/hosrt_default_ssh.ppk\")",
+      "Bash(\"/c/Windows/System32/OpenSSH/ssh.exe\" -i \"C:/Users/horst/.ssh/hosrt_default_ssh\" -o \"StrictHostKeyChecking=no\" -o \"BatchMode=yes\" horst@187.124.226.145 \"whoami && echo ''Login success''\")"
     ]
   }
 }

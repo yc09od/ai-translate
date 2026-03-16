@@ -18,6 +18,6 @@ COPY --from=builder /app/dist ./dist
 COPY package.json yarn.lock ./
 RUN yarn install --production --frozen-lockfile
 
-EXPOSE 8000
+EXPOSE 60000
 
 CMD ["node", "dist/index.js"]

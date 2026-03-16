@@ -30,9 +30,9 @@ declare module 'fastify' {
   }
 }
 
-const PORT = parseInt(process.env.PORT || '8000', 10)
+const PORT = parseInt(process.env.PORT || '60000', 10)
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production'
-const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:60001')
   .split(',')
   .map(o => o.trim())
 

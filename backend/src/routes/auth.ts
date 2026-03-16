@@ -62,7 +62,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { oauthProvider } = request.params as { oauthProvider: string };
       const { code } = request.query as { code: string };
-      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:60001";
 
       if (oauthProvider !== "google") {
         return reply
@@ -72,7 +72,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const redirectPath =
         process.env.GOOGLE_REDIRECT_PATH || "/oauth/google/callback";
-      const redirectUri = `${request.protocol}://${request.hostname}:${process.env.PORT || 8000}${redirectPath}`;
+      const redirectUri = `${request.protocol}://${request.hostname}:${process.env.PORT || 60000}${redirectPath}`;
       const { email, name } = await exchangeGoogleCode(code, redirectUri);
 
       let user = await findByEmail(email);
