@@ -64,7 +64,7 @@ yarn install
 yarn dev
 ```
 
-后端默认运行在 `http://localhost:8000`
+后端默认运行在 `http://localhost:60000`
 
 ## 构建与生产部署
 

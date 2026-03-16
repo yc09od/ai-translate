@@ -4,7 +4,7 @@
 
 import axios, { AxiosRequestConfig } from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:60000';
 const REFRESH_THRESHOLD_SECONDS = Number(process.env.NEXT_PUBLIC_TOKEN_REFRESH_THRESHOLD_SECONDS ?? 300);
 
 const client = axios.create({

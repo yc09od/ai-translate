@@ -118,7 +118,7 @@ function TestContent() {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true });
         setStream(s);
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:60000';
         const wsUrl = apiUrl.replace(/^http/, 'ws');
         const token = getTokenFromCookie();
         const ws = new WebSocket(`${wsUrl}/dev/test/translate/stream?token=${token}`);

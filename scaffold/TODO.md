@@ -75,7 +75,7 @@
   -- [45.4] [x] 实现 `POST /auth/logout` 路由 — 删除 Redis 中对应的 session key
 
 -- [46] [x] 添加api 文档工具swagger
--- [47] [x] 添加api dev 为 http://localhost:8000/oauth/google/callback, route 为/oauth/{oauthProvider}/callback，为了google oauth回调
+-- [47] [x] 添加api dev 为 http://localhost:60000/oauth/google/callback, route 为/oauth/{oauthProvider}/callback，为了google oauth回调
 
 -- [48] [x] `topicService` — CRUD 操作（创建/列表/删除话题）
 -- [49] [x] `translationService` — 保存翻译记录、按 topicId 分页查询历史
