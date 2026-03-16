@@ -72,7 +72,8 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       const redirectPath =
         process.env.GOOGLE_REDIRECT_PATH || "/oauth/google/callback";
-      const redirectUri = `${request.protocol}://${request.hostname}:${process.env.PORT || 60000}${redirectPath}`;
+      const redirectUri = `${request.protocol}://${request.hostname}:${process.env.BACKEND_PORT || 60000}${redirectPath}`;
+      fastify.log.debug(`\n\n*******Exchanging code for user info with redirect URI: ${redirectUri}\n\n`);
       const { email, name } = await exchangeGoogleCode(code, redirectUri);
 
       let user = await findByEmail(email);
