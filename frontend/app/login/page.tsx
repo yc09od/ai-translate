@@ -3,6 +3,9 @@
 import { Box, Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
+import { useLanguage } from '@/lib/i18n';
+import { toggleLanguage } from '@/lib/store/languageSlice';
+import { useDispatch } from 'react-redux';
 
 // [63] Redirect already-logged-in users to dashboard
 function OAuthCallbackHandler() {
@@ -55,6 +58,9 @@ function handleHotmailLogin() {
 }
 
 export default function LoginPage() {
+  const { lang, t } = useLanguage();
+  const dispatch = useDispatch();
+
   return (
     <>
       <Suspense>
@@ -66,8 +72,31 @@ export default function LoginPage() {
         height: '100vh',
         width: '100vw',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      {/* Language switcher */}
+      <Box
+        sx={{ position: 'absolute', top: 16, right: 16, zIndex: 10 }}
+        onClick={() => dispatch(toggleLanguage())}
+      >
+        <span style={{ display: 'flex', borderRadius: '999px', overflow: 'hidden', border: '1px solid #c7d2fe', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+          {(['en', 'zh'] as const).map((l) => (
+            <span
+              key={l}
+              style={{
+                padding: '4px 10px',
+                background: lang === l ? '#6366f1' : '#fff',
+                color: lang === l ? '#fff' : '#6366f1',
+                transition: 'background 0.2s, color 0.2s',
+                userSelect: 'none',
+              }}
+            >
+              {l === 'en' ? 'EN' : '中'}
+            </span>
+          ))}
+        </span>
+      </Box>
       {/* [53] Left decorative gradient panel */}
       <Box
         sx={{
@@ -99,7 +128,7 @@ export default function LoginPage() {
             letterSpacing: '-0.5px',
           }}
         >
-          AI 实时翻译
+          {t.loginTitle}
         </Typography>
 
         {/* [56][57][58] Login buttons - same width, vertical layout, moderate spacing */}
@@ -122,7 +151,7 @@ export default function LoginPage() {
               '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
             }}
           >
-            Sign in with Gmail
+            {t.loginWithGoogle}
           </Button>
 
           {/* [57] Hotmail button */}
@@ -143,9 +172,24 @@ export default function LoginPage() {
               '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
             }}
           >
-            Sign in with Hotmail
+            {t.loginWithHotmail}
           </Button>
         </Box>
+
+        {/* Policy and Terms links */}
+        <Typography
+          variant="caption"
+          sx={{ mt: 3, color: '#94a3b8', textAlign: 'center', lineHeight: 1.6 }}
+        >
+          {t.loginAgreement}{' '}
+          <a href="/policy" style={{ color: '#6366f1', textDecoration: 'none' }}>
+            {t.loginPrivacyPolicy}
+          </a>
+          {' '}{t.loginAnd}{' '}
+          <a href="/terms-of-service" style={{ color: '#6366f1', textDecoration: 'none' }}>
+            {t.loginTerms}
+          </a>
+        </Typography>
       </Box>
     </Box>
     </>

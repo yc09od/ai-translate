@@ -217,8 +217,8 @@
 
 ## 隐私政策与服务条款页面
 
--- [140] [ ] 前端：创建 `/policy` 页面，使用 react-markdown（或类似库）渲染 `scaffold/privacy-policy.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
--- [141] [ ] 前端：创建 `/terms-of-service` 页面，使用 react-markdown（或类似库）渲染 `scaffold/terms-of-service.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
+-- [140] [x] 前端：创建 `/policy` 页面，使用 react-markdown（或类似库）渲染 `scaffold/privacy-policy.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
+-- [141] [x] 前端：创建 `/terms-of-service` 页面，使用 react-markdown（或类似库）渲染 `scaffold/terms-of-service.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
 
 ## 邀请码与账户激活
 

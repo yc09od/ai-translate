@@ -17,7 +17,14 @@
       "Bash(\"/c/Windows/System32/OpenSSH/ssh.exe\" -i \"C:/Users/horst/.ssh/hosrt_default_ssh\" -o \"StrictHostKeyChecking=no\" -o \"BatchMode=yes\" horst@187.124.226.145 \"whoami && echo ''Login success''\")",
       "mcp__hostinger-api__hosting_listWebsitesV1",
       "mcp__hostinger-api__VPS_getProjectListV1",
-      "mcp__hostinger-api__hosting_listOrdersV1"
+      "mcp__hostinger-api__hosting_listOrdersV1",
+      "Bash(netstat -ano)",
+      "Bash(findstr :60000)",
+      "Bash(cmd /c \"netstat -ano | findstr :60000\")",
+      "Bash(cmd /c \"netsh interface ipv4 show excludedportrange protocol=tcp\")",
+      "Bash(cmd /c \"netsh int ipv4 show excludedportrange tcp\")",
+      "Bash(powershell -Command \"netsh int ipv4 show excludedportrange tcp\")",
+      "Bash(grep -r \"language\\\\|Language\\\\|toggleLanguage\\\\|setLanguage\" /c/projects/ai-translate/frontend/app --include=*.tsx --include=*.ts)"
     ]
   }
 }

@@ -48,6 +48,14 @@ export const dict = {
     saved: 'Saved!',
     saveFailed: 'Save failed. Please try again.',
     loading: 'Loading...',
+    // Login
+    loginTitle: 'AI Live Translation',
+    loginWithGoogle: 'Sign in with Google',
+    loginWithHotmail: 'Sign in with Hotmail',
+    loginAgreement: 'By signing in, you agree to our',
+    loginPrivacyPolicy: 'Privacy Policy',
+    loginAnd: 'and',
+    loginTerms: 'Terms of Service',
   },
   zh: {
     // Sidebar
@@ -91,6 +99,14 @@ export const dict = {
     saved: 'Saved!',
     saveFailed: 'Save failed. Please try again.',
     loading: 'Loading...',
+    // Login
+    loginTitle: 'AI 实时翻译',
+    loginWithGoogle: '使用 Gmail 登录',
+    loginWithHotmail: '使用 Hotmail 登录',
+    loginAgreement: '登录即表示您同意我们的',
+    loginPrivacyPolicy: '隐私政策',
+    loginAnd: '和',
+    loginTerms: '服务条款',
   },
 } as const;
 
