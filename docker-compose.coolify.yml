@@ -77,5 +77,5 @@ services:
       retries: 3
 
 volumes:
-  mongodb_data:
-  redis_data:
+  mongodb_data_v1:
+  redis_data+_v1:
