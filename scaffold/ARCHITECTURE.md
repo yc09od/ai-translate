@@ -45,10 +45,15 @@
 
 ### 2.3. 数据库
 *   **主数据库**: MongoDB
-    *   **用途**: 存储用户数据、主题和翻译历史。
+    *   **用途**: 存储用户数据、主题、翻译历史和邀请码。
     *   **Topic 排序**：`Topic` model 包含 `order` 字段（Number），新建 topic 时自动赋值为当前用户所有 topic 中最小 `order` 减 1（使新 topic 始终排在列表最前）。`GET /topics` 按 `order` 升序返回。
     *   **Topic 更新 API**：`PATCH /topics/:topicId` 支持更新 topic `title` 字段（用于 inline 编辑）。
     *   **Topic 批量排序 API**：`PUT /topics/reorder` 接受 `[{ id, order }]` 数组，批量更新当前用户 topic 的 `order` 字段（用于拖拽排序）。
+    *   **InvitationCode model**：字段 `code`（String，唯一索引）、`used`（Boolean，默认 false）。提供以下 API：
+        - `POST /invitation-codes` — 创建新邀请码
+        - `GET /invitation-codes` — 查询邀请码列表
+    *   **User model 扩展**：新增 `active` 字段（Boolean，默认 false）。用户首次通过 OAuth 登录时创建本地账户，`active` 初始为 false；用户提交有效邀请码后置为 true。
+    *   **激活码验证 API**：`POST /auth/activate` — 接收 `{ code }`，验证邀请码是否存在且未使用；有效则将用户 `active` 置为 true、邀请码 `used` 置为 true，返回成功状态；无效则返回错误。
 *   **缓存数据库**: Redis
     *   **用途**: 缓存频繁访问的数据，例如用户会话信息或最近的翻译，以提高性能。
 
@@ -56,19 +61,37 @@
 
 用户**只能**通过 OAuth 登录（Google Gmail 或 Microsoft Hotmail），不支持本地注册/密码。
 
-**登录流程：**
+**登录流程（含激活码机制）：**
 
 ```
 前端
-  └─► POST /auth/oauth  { provider: "google"|"hotmail", oauthToken }
+  └─► OAuth 回调 → 后端 /oauth/:provider/callback
         │
         ▼
-        后端：向 OAuth 提供商验证 token，获取 email
+        后端：向 OAuth 提供商换取 email/name
         │
         ├─ MongoDB 中存在该 email？
-        │     └─ YES → 直接签发 JWT
+        │     └─ YES → 取已有用户
         │
-        └─ NO → 创建新 User 文档 → 签发 JWT
+        └─ NO → 创建新 User（active: false）
+        │
+        ▼
+        用户 active === true？
+        │     └─ YES → 签发 JWT + refresh token → redirect /login?token=xxx&refreshToken=yyy
+        │
+        └─ NO → redirect /login?needActivation=true&tempToken=xxx
+               （tempToken 为短期临时令牌，仅用于激活步骤）
+```
+
+**激活流程：**
+```
+前端（激活码输入页）
+  └─► POST /auth/activate  { code, tempToken }
+        │
+        ├─ 邀请码存在且 used=false？
+        │     └─ YES → 用户 active 置 true，邀请码 used 置 true → 签发正式 JWT → 返回成功
+        │
+        └─ NO → 返回 400 错误
 ```
 
 - JWT 由本地 server 签发，存储于 Redis（含 TTL）作为 session。

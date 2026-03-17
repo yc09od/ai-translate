@@ -215,6 +215,18 @@
 -- [138] [x] 根目录：添加 `docker-compose.dev.yml`，包含 frontend、backend、mongodb、redis 四个服务，前后端挂载源码支持热更新
 -- [139] [x] 根目录：添加 `docker-compose.yml`（Coolify 生产用），仅包含 frontend 和 backend 服务，配置 restart 策略和 healthcheck，环境变量由 Coolify 平台注入
 
+## 隐私政策与服务条款页面
+
+-- [140] [ ] 前端：创建 `/policy` 页面，使用 react-markdown（或类似库）渲染 `scaffold/privacy-policy.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
+-- [141] [ ] 前端：创建 `/terms-of-service` 页面，使用 react-markdown（或类似库）渲染 `scaffold/terms-of-service.md` 内容，全页仅显示 Markdown 内容区和左上角 Return 按钮（`router.back()`），无导航栏和侧边栏
+
+## 邀请码与账户激活
+
+-- [142] [ ] 后端：创建 `InvitationCode` model（字段：`code` String 唯一索引、`used` Boolean 默认 false），实现 `POST /invitation-codes` 创建邀请码和 `GET /invitation-codes` 查询列表两个路由
+-- [143] [ ] 后端：`User` model 新增 `active` 字段（Boolean，默认 false）；OAuth 回调逻辑更新：新建用户时 `active` 初始为 false；回调时检查用户 `active` 状态——已激活则正常签发 JWT redirect；未激活则签发短期 tempToken redirect 到 `/login?needActivation=true&tempToken=xxx`
+-- [144] [ ] 后端：实现 `POST /auth/activate` 路由，接收 `{ code, tempToken }`；验证 tempToken 有效性，再核查邀请码存在且 `used=false`；通过则将用户 `active` 置 true、邀请码 `used` 置 true，签发正式 JWT 返回；失败返回 400 错误
+-- [145] [ ] 前端：登录页检测 URL 参数 `needActivation=true` 时，右侧区域切换为激活码输入界面（title 改为「激活账户」、展示 input 和提交按钮）；调用 `POST /auth/activate`，失败时 input 变红并显示错误提示，成功时显示提示后 1 秒跳转 `/dashboard`
+
 ## 翻譯歷史分頁
 
 -- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢
