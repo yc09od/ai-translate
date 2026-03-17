@@ -52,7 +52,9 @@
     *   **InvitationCode model**：字段 `code`（String，唯一索引）、`used`（Boolean，默认 false）。提供以下 API：
         - `POST /invitation-codes` — 创建新邀请码
         - `GET /invitation-codes` — 查询邀请码列表
-    *   **User model 扩展**：新增 `active` 字段（Boolean，默认 false）。用户首次通过 OAuth 登录时创建本地账户，`active` 初始为 false；用户提交有效邀请码后置为 true。
+    *   **User model 扩展**：
+        - `active` 字段（Boolean，默认 false）：用户首次通过 OAuth 登录时创建本地账户，`active` 初始为 false；用户提交有效邀请码后置为 true。
+        - `role` 字段（枚举：`customer | agent | admin`，默认 `customer`）：标识用户身份，用于路由级别的权限控制（RBAC）。
     *   **激活码验证 API**：`POST /auth/activate` — 接收 `{ code }`，验证邀请码是否存在且未使用；有效则将用户 `active` 置为 true、邀请码 `used` 置为 true，返回成功状态；无效则返回错误。
 *   **缓存数据库**: Redis
     *   **用途**: 缓存频繁访问的数据，例如用户会话信息或最近的翻译，以提高性能。
@@ -93,6 +95,17 @@
         │
         └─ NO → 返回 400 错误
 ```
+
+**角色权限控制（RBAC）：**
+
+| 角色 | 说明 | 可访问邀请码路由 |
+|------|------|-----------------|
+| `customer` | 普通用户（默认） | ✗ |
+| `agent` | 代理/运营人员 | ✓ |
+| `admin` | 管理员 | ✓ |
+
+- 后端实现 `requireRole(...roles)` 钩子工厂函数，通过 JWT userId 查询用户 role，不满足则返回 403。
+- `POST /invitation-codes` 和 `GET /invitation-codes` 均受此守卫保护，仅 `agent` 和 `admin` 可访问。
 
 - JWT 由本地 server 签发，存储于 Redis（含 TTL）作为 session。
 - `userService` 的创建用户逻辑**仅在此处触发**，没有独立的"注册"接口。

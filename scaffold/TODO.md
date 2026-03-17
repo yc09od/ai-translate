@@ -222,10 +222,16 @@
 
 ## 邀请码与账户激活
 
--- [142] [ ] 后端：创建 `InvitationCode` model（字段：`code` String 唯一索引、`used` Boolean 默认 false），实现 `POST /invitation-codes` 创建邀请码和 `GET /invitation-codes` 查询列表两个路由
--- [143] [ ] 后端：`User` model 新增 `active` 字段（Boolean，默认 false）；OAuth 回调逻辑更新：新建用户时 `active` 初始为 false；回调时检查用户 `active` 状态——已激活则正常签发 JWT redirect；未激活则签发短期 tempToken redirect 到 `/login?needActivation=true&tempToken=xxx`
--- [144] [ ] 后端：实现 `POST /auth/activate` 路由，接收 `{ code, tempToken }`；验证 tempToken 有效性，再核查邀请码存在且 `used=false`；通过则将用户 `active` 置 true、邀请码 `used` 置 true，签发正式 JWT 返回；失败返回 400 错误
--- [145] [ ] 前端：登录页检测 URL 参数 `needActivation=true` 时，右侧区域切换为激活码输入界面（title 改为「激活账户」、展示 input 和提交按钮）；调用 `POST /auth/activate`，失败时 input 变红并显示错误提示，成功时显示提示后 1 秒跳转 `/dashboard`
+-- [142] [x] 后端：创建 `InvitationCode` model（字段：`code` String 唯一索引、`used` Boolean 默认 false），实现 `POST /invitation-codes` 创建邀请码和 `GET /invitation-codes` 查询列表两个路由
+-- [143] [x] 后端：`User` model 新增 `active` 字段（Boolean，默认 false）；OAuth 回调逻辑更新：新建用户时 `active` 初始为 false；回调时检查用户 `active` 状态——已激活则正常签发 JWT redirect；未激活则签发短期 tempToken redirect 到 `/login?needActivation=true&tempToken=xxx`
+-- [144] [x] 后端：实现 `POST /auth/activate` 路由，接收 `{ code, tempToken }`；验证 tempToken 有效性，再核查邀请码存在且 `used=false`；通过则将用户 `active` 置 true、邀请码 `used` 置 true，签发正式 JWT 返回；失败返回 400 错误
+-- [145] [x] 前端：登录页检测 URL 参数 `needActivation=true` 时，右侧区域切换为激活码输入界面（title 改为「激活账户」、展示 input 和提交按钮）；调用 `POST /auth/activate`，失败时 input 变红并显示错误提示，成功时显示提示后 1 秒跳转 `/dashboard`
+
+## 用户角色与权限控制（RBAC）
+
+-- [146] [x] 后端：`User` model 新增 `role` 字段（枚举：`customer | agent | admin`，默认 `customer`）
+-- [147] [x] 后端：实现 `requireRole(...roles)` 钩子工厂函数——读取 JWT userId，查询用户 role，不满足则返回 403；供路由 `onRequest` 使用
+-- [148] [x] 后端：为 `POST /invitation-codes` 和 `GET /invitation-codes` 两个路由添加 `requireRole('agent', 'admin')` 鉴权
 
 ## 翻譯歷史分頁
 

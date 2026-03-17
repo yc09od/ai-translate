@@ -21,6 +21,7 @@ import { userRoutes } from './routes/users'
 import { systemRoutes } from './routes/system'
 import { liveTranslationRoutes } from './routes/liveTranslation'
 import { devTestRoutes } from './routes/devTest'
+import { invitationCodeRoutes } from './routes/invitationCodes'
 
 // Fastify type augmentation for decorated DB instances
 declare module 'fastify' {
@@ -99,6 +100,7 @@ server.register(topicRoutes)
 server.register(translationRoutes)
 server.register(userRoutes)
 server.register(liveTranslationRoutes)
+server.register(invitationCodeRoutes)
 if (process.env.NODE_ENV !== 'production') {
   server.register(devTestRoutes)
 }

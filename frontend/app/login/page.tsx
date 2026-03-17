@@ -1,8 +1,8 @@
 'use client';
 
-import { Box, Button, Typography } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import { useEffect, Suspense } from 'react';
+import { Box, Button, TextField, Typography } from '@mui/material';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 import { useLanguage } from '@/lib/i18n';
 import { toggleLanguage } from '@/lib/store/languageSlice';
 import { useDispatch } from 'react-redux';
@@ -57,15 +57,85 @@ function handleHotmailLogin() {
   if (url) window.location.href = url;
 }
 
-export default function LoginPage() {
-  const { lang, t } = useLanguage();
-  const dispatch = useDispatch();
+// [145] Activation form — reads URL params inside Suspense
+function ActivationForm({ tempToken }: { tempToken: string }) {
+  const { t } = useLanguage();
+  const router = useRouter();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  async function handleActivate() {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/activate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ code, tempToken }),
+        },
+      );
+      if (!res.ok) {
+        setError(t.activateError);
+        setLoading(false);
+        return;
+      }
+      setSuccess(true);
+      setTimeout(() => router.replace('/dashboard'), 1000);
+    } catch {
+      setError(t.activateError);
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
-      <Suspense>
-        <OAuthCallbackHandler />
-      </Suspense>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: 280 }}>
+      <TextField
+        size="small"
+        placeholder={t.activatePlaceholder}
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        error={!!error}
+        helperText={error}
+        disabled={loading || success}
+        onKeyDown={(e) => e.key === 'Enter' && handleActivate()}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            '&.Mui-error fieldset': { borderColor: '#ef4444' },
+          },
+        }}
+      />
+      <Button
+        variant="contained"
+        onClick={handleActivate}
+        disabled={loading || success || !code.trim()}
+        sx={{
+          backgroundColor: '#6366f1',
+          textTransform: 'none',
+          fontWeight: 500,
+          '&:hover': { backgroundColor: '#4f46e5' },
+          '&.Mui-disabled': { backgroundColor: '#c7d2fe', color: '#fff' },
+        }}
+      >
+        {success ? t.activateSuccess : loading ? t.activateActivating : t.activateSubmit}
+      </Button>
+    </Box>
+  );
+}
+
+// Wrapper that reads search params (must be inside Suspense)
+function LoginContent() {
+  const { lang, t } = useLanguage();
+  const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+  const needActivation = searchParams.get('needActivation') === 'true';
+  const tempToken = searchParams.get('tempToken') ?? '';
+
+  return (
     <Box
       sx={{
         display: 'flex',
@@ -97,6 +167,7 @@ export default function LoginPage() {
           ))}
         </span>
       </Box>
+
       {/* [53] Left decorative gradient panel */}
       <Box
         sx={{
@@ -105,7 +176,7 @@ export default function LoginPage() {
         }}
       />
 
-      {/* [54] Right content area - vertically and horizontally centered */}
+      {/* [54] Right content area */}
       <Box
         sx={{
           flex: 1,
@@ -117,7 +188,7 @@ export default function LoginPage() {
           px: 4,
         }}
       >
-        {/* [55] App Title */}
+        {/* Title */}
         <Typography
           variant="h4"
           sx={{
@@ -128,70 +199,82 @@ export default function LoginPage() {
             letterSpacing: '-0.5px',
           }}
         >
-          {t.loginTitle}
+          {needActivation ? t.activateTitle : t.loginTitle}
         </Typography>
 
-        {/* [56][57][58] Login buttons - same width, vertical layout, moderate spacing */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: 280 }}>
-          {/* [56] Gmail button */}
-          <Button
-            variant="outlined"
-            startIcon={<GoogleLogo />}
-            onClick={handleGoogleLogin}
-            sx={{
-              width: '100%',
-              py: 1.5,
-              borderColor: '#e2e8f0',
-              color: '#1e293b',
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              fontWeight: 500,
-              justifyContent: 'flex-start',
-              pl: 3,
-              '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
-            }}
-          >
-            {t.loginWithGoogle}
-          </Button>
+        {needActivation ? (
+          <ActivationForm tempToken={tempToken} />
+        ) : (
+          <>
+            {/* OAuth buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: 280 }}>
+              <Button
+                variant="outlined"
+                startIcon={<GoogleLogo />}
+                onClick={handleGoogleLogin}
+                sx={{
+                  width: '100%',
+                  py: 1.5,
+                  borderColor: '#e2e8f0',
+                  color: '#1e293b',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  justifyContent: 'flex-start',
+                  pl: 3,
+                  '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
+                }}
+              >
+                {t.loginWithGoogle}
+              </Button>
 
-          {/* [57] Hotmail button */}
-          <Button
-            variant="outlined"
-            startIcon={<MicrosoftLogo />}
-            onClick={handleHotmailLogin}
-            sx={{
-              width: '100%',
-              py: 1.5,
-              borderColor: '#e2e8f0',
-              color: '#1e293b',
-              textTransform: 'none',
-              fontSize: '0.95rem',
-              fontWeight: 500,
-              justifyContent: 'flex-start',
-              pl: 3,
-              '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
-            }}
-          >
-            {t.loginWithHotmail}
-          </Button>
-        </Box>
+              <Button
+                variant="outlined"
+                startIcon={<MicrosoftLogo />}
+                onClick={handleHotmailLogin}
+                sx={{
+                  width: '100%',
+                  py: 1.5,
+                  borderColor: '#e2e8f0',
+                  color: '#1e293b',
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 500,
+                  justifyContent: 'flex-start',
+                  pl: 3,
+                  '&:hover': { borderColor: '#cbd5e1', backgroundColor: '#f8fafc' },
+                }}
+              >
+                {t.loginWithHotmail}
+              </Button>
+            </Box>
 
-        {/* Policy and Terms links */}
-        <Typography
-          variant="caption"
-          sx={{ mt: 3, color: '#94a3b8', textAlign: 'center', lineHeight: 1.6 }}
-        >
-          {t.loginAgreement}{' '}
-          <a href="/policy" style={{ color: '#6366f1', textDecoration: 'none' }}>
-            {t.loginPrivacyPolicy}
-          </a>
-          {' '}{t.loginAnd}{' '}
-          <a href="/terms-of-service" style={{ color: '#6366f1', textDecoration: 'none' }}>
-            {t.loginTerms}
-          </a>
-        </Typography>
+            {/* Policy and Terms links */}
+            <Typography
+              variant="caption"
+              sx={{ mt: 3, color: '#94a3b8', textAlign: 'center', lineHeight: 1.6 }}
+            >
+              {t.loginAgreement}{' '}
+              <a href="/policy" style={{ color: '#6366f1', textDecoration: 'none' }}>
+                {t.loginPrivacyPolicy}
+              </a>
+              {' '}{t.loginAnd}{' '}
+              <a href="/terms-of-service" style={{ color: '#6366f1', textDecoration: 'none' }}>
+                {t.loginTerms}
+              </a>
+            </Typography>
+          </>
+        )}
       </Box>
     </Box>
-    </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <OAuthCallbackHandler />
+      <LoginContent />
+    </Suspense>
   );
 }

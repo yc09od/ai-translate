@@ -65,6 +65,21 @@
   3. 调用翻译 API（Gemini / Kimi）→ 得到译文
   4. 将译文返回客户端并存入 MongoDB
 
+### 用户角色（RBAC）
+
+系统支持三种用户身份（`role` 字段存储于 User model）：
+
+| 角色 | 说明 |
+|------|------|
+| `customer` | 普通用户，默认角色，仅能使用翻译核心功能 |
+| `agent` | 代理/运营人员，可创建和查看邀请码 |
+| `admin` | 管理员，可创建和查看邀请码 |
+
+- 只有 `agent` 和 `admin` 可访问 `POST /invitation-codes` 和 `GET /invitation-codes`。
+- 后端通过 `requireRole()` 钩子工厂函数统一拦截权限不足的请求，返回 403。
+
+---
+
 ### 用户认证（OAuth + JWT）
 
 - **不支持本地注册/密码**，用户只能通过 Google Gmail 或 Microsoft Hotmail 的 OAuth 登录。

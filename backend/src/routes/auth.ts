@@ -7,6 +7,7 @@ import {
   getRefreshToken,
   deleteRefreshToken,
 } from "../services/sessionStore";
+import { InvitationCode } from "../models/InvitationCode";
 
 async function exchangeGoogleCode(
   code: string,
@@ -91,6 +92,25 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       const userId = (user._id as { toString(): string }).toString();
+      const isProd = process.env.NODE_ENV === "production";
+      const cookieBase = {
+        sameSite: "lax" as const,
+        secure: isProd,
+        path: "/",
+        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
+      };
+
+      // [143] If user is not activated, issue a short-lived tempToken and redirect to activation
+      if (!user.active) {
+        const tempToken = fastify.jwt.sign(
+          { userId, email, type: "temp" },
+          { expiresIn: "15m" },
+        );
+        return reply.redirect(
+          `${frontendUrl}/login?needActivation=true&tempToken=${tempToken}`,
+        );
+      }
+
       const token = fastify.jwt.sign(
         { userId, email, provider: "google" },
         { expiresIn: "1h" },
@@ -106,18 +126,6 @@ export async function authRoutes(fastify: FastifyInstance) {
         refreshToken,
       });
       await setRefreshToken(userId, refreshToken);
-
-      const isProd = process.env.NODE_ENV === "production";
-      const cookieBase = {
-        sameSite: "lax" as const,
-        secure: isProd,
-        path: "/",
-        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
-      };
-
-      fastify.log.info(
-        `\n\n*******Testing: ${token}\n\n`,
-      );
 
       reply.setCookie("token", token, {
         ...cookieBase,
@@ -202,6 +210,108 @@ export async function authRoutes(fastify: FastifyInstance) {
         httpOnly: false,
         maxAge: 3600,
         domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
+      });
+
+      return { success: true };
+    },
+  );
+
+  // POST /auth/activate — [144] 验证邀请码，激活账户
+  fastify.post(
+    "/auth/activate",
+    {
+      schema: {
+        tags: ["Auth"],
+        summary: "激活账户",
+        description: "验证 tempToken 和邀请码，激活用户账户并签发正式 JWT。",
+        body: {
+          type: "object",
+          required: ["code", "tempToken"],
+          properties: {
+            code: { type: "string" },
+            tempToken: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: { success: { type: "boolean" } },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { code, tempToken } = request.body as {
+        code: string;
+        tempToken: string;
+      };
+
+      let payload: { userId: string; email: string; type: string };
+      try {
+        payload = fastify.jwt.verify(tempToken) as {
+          userId: string;
+          email: string;
+          type: string;
+        };
+      } catch {
+        return reply.status(400).send({ error: "Invalid or expired token" });
+      }
+
+      if (payload.type !== "temp") {
+        return reply.status(400).send({ error: "Invalid token type" });
+      }
+
+      const invitation = await InvitationCode.findOne({ code, used: false });
+      if (!invitation) {
+        return reply.status(400).send({ error: "Invalid or already used invitation code" });
+      }
+
+      const { User } = await import("../models/User");
+      const user = await User.findByIdAndUpdate(
+        payload.userId,
+        { active: true },
+        { new: true },
+      );
+      if (!user) {
+        return reply.status(400).send({ error: "User not found" });
+      }
+
+      invitation.used = true;
+      await invitation.save();
+
+      const isProd = process.env.NODE_ENV === "production";
+      const cookieBase = {
+        sameSite: "lax" as const,
+        secure: isProd,
+        path: "/",
+        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
+      };
+
+      const token = fastify.jwt.sign(
+        { userId: payload.userId, email: payload.email, provider: user.provider },
+        { expiresIn: "1h" },
+      );
+      const refreshToken = fastify.jwt.sign(
+        { userId: payload.userId, type: "refresh" },
+        { expiresIn: "30d" },
+      );
+      await setSession(payload.userId, {
+        userId: payload.userId,
+        email: payload.email,
+        provider: user.provider,
+        refreshToken,
+      });
+      await setRefreshToken(payload.userId, refreshToken);
+
+      reply.setCookie("token", token, {
+        ...cookieBase,
+        httpOnly: false,
+        maxAge: 3600,
+      });
+      reply.setCookie("refreshToken", refreshToken, {
+        ...cookieBase,
+        httpOnly: true,
+        maxAge: 2592000,
       });
 
       return { success: true };

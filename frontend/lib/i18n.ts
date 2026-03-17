@@ -56,6 +56,13 @@ export const dict = {
     loginPrivacyPolicy: 'Privacy Policy',
     loginAnd: 'and',
     loginTerms: 'Terms of Service',
+    // Activation
+    activateTitle: 'Activate Account',
+    activatePlaceholder: 'Enter invitation code',
+    activateSubmit: 'Activate',
+    activateActivating: 'Activating...',
+    activateSuccess: 'Activated! Redirecting...',
+    activateError: 'Invalid or already used invitation code',
   },
   zh: {
     // Sidebar
@@ -107,6 +114,13 @@ export const dict = {
     loginPrivacyPolicy: '隐私政策',
     loginAnd: '和',
     loginTerms: '服务条款',
+    // Activation
+    activateTitle: '激活账户',
+    activatePlaceholder: '输入邀请码',
+    activateSubmit: '激活',
+    activateActivating: '激活中...',
+    activateSuccess: '激活成功！正在跳转...',
+    activateError: '邀请码无效或已被使用',
   },
 } as const;
 
