@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import client from '@/lib/apiClient';
 import {
   adminGetUsers,
@@ -38,13 +38,14 @@ const styles = {
     height: '56px',
     display: 'flex',
     alignItems: 'center',
-    borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
     color: active ? '#6366f1' : '#6b7280',
     fontWeight: active ? 600 : 400,
     cursor: 'pointer',
     userSelect: 'none',
     background: 'none',
-    border: 'none',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
     borderBottom: active ? '2px solid #6366f1' : '2px solid transparent',
     fontSize: '14px',
   }),
@@ -264,6 +265,28 @@ function UserManagement() {
 
 // ── CodeManagement ───────────────────────────────────────────────────────────
 
+const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_#@!';
+const CODE_LENGTH = 15;
+
+function generateUniqueCode(existingCodes: string[]): string {
+  const existing = new Set(existingCodes);
+  for (let attempt = 0; attempt < 20; attempt++) {
+    let code = '';
+    const arr = new Uint8Array(CODE_LENGTH);
+    crypto.getRandomValues(arr);
+    for (const byte of arr) {
+      code += CODE_CHARS[byte % CODE_CHARS.length];
+    }
+    if (!existing.has(code)) return code;
+  }
+  // Extremely unlikely to reach here; return last generated anyway
+  let code = '';
+  const arr = new Uint8Array(CODE_LENGTH);
+  crypto.getRandomValues(arr);
+  for (const byte of arr) code += CODE_CHARS[byte % CODE_CHARS.length];
+  return code;
+}
+
 function CodeManagement() {
   const [codes, setCodes] = useState<AdminCode[]>([]);
   const [total, setTotal] = useState(0);
@@ -324,9 +347,16 @@ function CodeManagement() {
           style={styles.input}
           placeholder="New invitation code…"
           value={newCode}
-          onChange={(e) => { setNewCode(e.target.value); setCreateError(''); }}
+          onChange={(e) => { setNewCode(e.target.value.replace(/[\s\t]/g, '')); setCreateError(''); }}
           onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
         />
+        <button
+          style={styles.btn('ghost')}
+          onClick={() => setNewCode(generateUniqueCode(codes.map((c) => c.code)))}
+          disabled={creating}
+        >
+          Generate
+        </button>
         <button style={styles.btn('primary')} onClick={handleCreate} disabled={creating || !newCode.trim()}>
           {creating ? 'Adding…' : 'Add Code'}
         </button>
@@ -413,7 +443,8 @@ type Tab = 'users' | 'codes';
 
 export default function AdminPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('users');
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'users');
   const [checking, setChecking] = useState(true);
 
   // Verify admin role on mount
@@ -435,10 +466,10 @@ export default function AdminPage() {
     <div style={styles.page}>
       <header style={styles.header}>
         <span style={styles.headerTitle}>Admin Panel</span>
-        <button style={styles.tab(tab === 'users')} onClick={() => setTab('users')}>
+        <button style={styles.tab(tab === 'users')} onClick={() => { setTab('users'); router.replace('/admin?tab=users'); }}>
           Users
         </button>
-        <button style={styles.tab(tab === 'codes')} onClick={() => setTab('codes')}>
+        <button style={styles.tab(tab === 'codes')} onClick={() => { setTab('codes'); router.replace('/admin?tab=codes'); }}>
           Invitation Codes
         </button>
         <div style={{ flex: 1 }} />

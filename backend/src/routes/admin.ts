@@ -177,6 +177,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { code } = request.body as { code: string }
+      if (/[\s\t]/.test(code)) return reply.status(400).send({ error: 'Code must not contain spaces or tabs' })
       const existing = await InvitationCode.findOne({ code })
       if (existing) return reply.status(409).send({ error: 'Code already exists' })
       const invitation = await InvitationCode.create({ code })

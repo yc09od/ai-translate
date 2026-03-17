@@ -107,17 +107,20 @@
 - 后端实现 `requireRole(...roles)` 钩子工厂函数，通过 JWT userId 查询用户 role，不满足则返回 403。
 - `POST /invitation-codes` 和 `GET /invitation-codes` 均受此守卫保护，仅 `agent` 和 `admin` 可访问。
 
-**Admin 管理路由（仅 `admin` 可访问）：**
+**Admin 管理路由：**
 
-| 路由 | 方法 | 说明 |
-|------|------|------|
-| `/admin/users` | GET | 查询用户列表，支持 filter、order、分页参数（见下方说明） |
-| `/admin/users/:userId` | PATCH | 更新指定用户的 `active` 字段（仅允许修改此字段） |
-| `/admin/invitation-codes` | GET | 查询邀请码列表，支持 filter、order、分页参数（见下方说明） |
-| `/admin/invitation-codes` | POST | 创建新邀请码 |
-| `/admin/invitation-codes/:codeId` | PATCH | 更新指定邀请码的 `used` 字段（切换启用/停用状态） |
+| 路由 | 方法 | 所需角色 | 说明 |
+|------|------|----------|------|
+| `/admin/users` | GET | `agent` \| `admin` | 查询用户列表，支持 filter、order、分页参数（见下方说明） |
+| `/admin/users/:userId` | PATCH | `agent` \| `admin` | 更新指定用户的 `active` 字段（仅允许修改此字段） |
+| `/admin/invitation-codes` | GET | `agent` \| `admin` | 查询邀请码列表，支持 filter、order、分页参数（见下方说明） |
+| `/admin/invitation-codes` | POST | `admin` | 创建新邀请码 |
+| `/admin/invitation-codes/:codeId` | PATCH | `admin` | 更新指定邀请码的 `used` 字段（切换启用/停用状态） |
 
-以上路由均使用 `requireRole('admin')` 守卫，非 admin 用户返回 403。
+路由权限说明：
+- `agent` 和 `admin` 均可访问 `/admin` 页面、浏览用户列表、编辑用户 `active` 状态、查看邀请码列表
+- 仅 `admin` 可创建邀请码（`POST /admin/invitation-codes`）和切换邀请码状态（`PATCH /admin/invitation-codes/:codeId`）
+- 非 `agent`/`admin` 角色访问受保护路由时返回 403
 
 **`GET /admin/users` 查询参数：**
 

@@ -399,7 +399,7 @@ KIMI_API_KEY=your-kimi-api-key
 └──────────────────────────────────────────────────┘
 ```
 
-- 页面路由：`/admin`，需要 `admin` 角色鉴权（非 admin 用户重定向到 `/dashboard`）
+- 页面路由：`/admin`，需要 `agent` 或 `admin` 角色鉴权（其他角色用户重定向到 `/dashboard`）
 - 顶部 Tab 切换：**用户管理** / **激活码管理**
 
 #### 用户管理子界面
@@ -414,7 +414,7 @@ KIMI_API_KEY=your-kimi-api-key
   - `用户身份`（role：customer / agent / admin）
   - `激活状态`（active：true / false）
   - `操作`（Edit 按钮）
-- 每行的 Edit 功能：**仅允许修改 `active` 字段**（切换激活/禁用状态），点击 Edit 后该行出现确认/取消操作，提交后调用 `PATCH /admin/users/:userId`
+- 每行的 Edit 功能：**仅允许修改 `active` 字段**（切换激活/禁用状态），点击 Edit 后该行出现确认/取消操作，提交后调用 `PATCH /admin/users/:userId`（`agent` 和 `admin` 均可操作）
 - 表格下方 **分页控件**：显示当前页 / 总页数，支持上一页/下一页；每页默认 15 条，最多 15 条；查询参数变化时重置为第 1 页
 
 #### 激活码管理子界面
@@ -426,8 +426,8 @@ KIMI_API_KEY=your-kimi-api-key
   - `code`（邀请码字符串）
   - `使用状态`（used：已使用 / 未使用）
   - `操作`（切换 used 状态的按钮）
-- 页面顶部提供「添加邀请码」输入框 + 提交按钮，调用 `POST /admin/invitation-codes` 创建新邀请码
-- 每行操作按钮：切换该邀请码的 `used` 状态，调用 `PATCH /admin/invitation-codes/:codeId`
+- 页面顶部提供「添加邀请码」输入框 + 提交按钮，调用 `POST /admin/invitation-codes` 创建新邀请码（**仅 `admin` 可见/可用**）
+- 每行操作按钮：切换该邀请码的 `used` 状态，调用 `PATCH /admin/invitation-codes/:codeId`（**仅 `admin` 可用**）
 - 表格下方 **分页控件**：显示当前页 / 总页数，支持上一页/下一页；每页默认 15 条，最多 15 条；filter/order 变化时重置为第 1 页
 
 ---

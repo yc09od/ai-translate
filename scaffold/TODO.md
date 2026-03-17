@@ -114,7 +114,6 @@
 -- [74] [x] 前端：GUI 用户名显示文字向左对齐。
 -- [75] [x] 前端：左侧 nav bar 默认状态为展开，且 nav bar 的展开/收起状态存入 Redux 并持久化到本地（localStorage）。
 
-
 ## User Profile
 
 -- [76] [x] 前端：setting button group 中添加 User Profile 选项。
@@ -143,11 +142,9 @@
 -- [90] [x] 更新网站名字：修改 `frontend/app/layout.tsx` 中的 `metadata.title`，同时更新登录页 App Title 显示文字。
 -- [91] [x] 替换网站 favicon：将新图标文件放入 `frontend/app/` 或 `frontend/public/`，替换默认 `favicon.ico`。
 
-
 ## Token 后台保活
 
 -- [92] [x] 前端：实现定时器驱动的 token 主动续期——页面加载后启动定期检查（每分钟），当 access token 距过期时间低于阈值（如5分钟）时，自动用 refresh token 换取新 token，解决页面长时间打开但无操作时 token 静默过期的问题
--- [113] [x] Bug 修复：access token 过期时前端直接 logout 而不尝试 refresh——应在 token 过期触发 logout 前，先检查 refresh token 是否有效并尝试换取新 access token；只有 refresh token 也过期（或 refresh 请求失败）时才执行 logout
 
 ## Fastify 配置
 
@@ -185,13 +182,39 @@
 
 -- [110] [x] 前端：在录音过程中，利用 AnalyserNode 实时监测音量，使用相对阈值检测静音（当前音量 < 近 2 秒滑动峰值 × 20%），持续静音超过 1 秒时通过 WebSocket 发送 `{ type: "end_utterance" }` 消息，然后重置计时器
 -- [111] [x] 后端：移除 5 秒定时 flush interval；改为收到 `end_utterance` 消息时，将累积的 binary buffer 保存为一个新音频文件并清空 buffer（保留 headerChunk）
-
 -- [112] [x] Bug 修复：VAD 静音检测阈值过严
+-- [113] [x] Bug 修复：access token 过期时前端直接 logout 而不尝试 refresh——应在 token 过期触发 logout 前，先检查 refresh token 是否有效并尝试换取新 access token；只有 refresh token 也过期（或 refresh 请求失败）时才执行 logout
 -- [114] [x] 后端：将音频文件格式从 mp4 改为 wav——修改 `routes/liveTranslation.ts` 中的文件扩展名（`.mp4` → `.webm`）导致 end_utterance 从未触发——所有音频保存为一个文件。修复方案：在相对阈值基础上叠加绝对阈值下限（如 avg < 8 才判定为静音），同时适当提高 VAD_SILENCE_RATIO（如从 0.20 调至 0.35），并在前端添加 console.log 输出 end_utterance 触发日志以便验证
 
-## pending things Start
+## AI API 集成
+
+-- [115] [x] 后端：集成 Kimi / Gemini 标准文本 API——在 `backend/.env` 添加 `GEMINI_API_KEY` 和 `KIMI_API_KEY`，安装对应 SDK（`@google/generative-ai`），实现 `aiService.translate(text)` 调用 AI API 进行文本翻译
+-- [116] [x] 后端：集成 Gemini Live 实时流式 API——实现流式调用能力，支持逐段返回翻译结果并通过 WebSocket 实时推送至前端
+
+## Live 翻譯 AI 集成
+
+-- [117] [x] 後端：創建 `backend/src/config/prompts.ts`，導出音頻翻譯的 pre-prompt（system instruction），要求 AI API 基於語言返回 JSON 格式 `{"o": "<原文>", "t": "<譯文>"}` 且不輸出其他任何內容.
+-- [118] [x] 後端：在 `routes/liveTranslation.ts` 的 `end_utterance` 處理中，並發執行文件保存 + 調用 AI API（使用 prompts.ts 的 instructionForLiveAudio）；解析返回的 `{o, t}` JSON，通過 WebSocket 推送翻譯結果至前端；兩個操作互不等待
+
+## 翻譯歷史
+
+-- [119] [x] 後端：`liveTranslation.ts` AI 翻譯成功後，將 `{originalText, translatedText, topicId, userId}` 保存為 TranslationRecord 寫入 MongoDB. 這個保存過程不能阻礙 AI翻譯的進程。意思就是，如果保存的時候，websocket有新的chunk進來。ai 翻譯要同時進行。
+-- [120] [x] 前端：Dashboard WebSocket 監聽 `{ type: "translation" }` 消息，實時將 `{original, translated}` 追加到 main panel 展示區域
+-- [121] [x] 前端：點擊 sidebar topic 時，調用 `GET /topics/:topicId/translations` 加載歷史翻譯記錄，在 main panel 中渲染歷史列表（之後實時新增的條目繼續追加）
+
+## OT Loading Card 有序揭示
+
+-- [122] [x] 後端：WebSocket 協議擴展——接收 `{ type: "segment_start", segmentId }` 消息，記錄 segmentId 與當前 buffer 的對應關係；翻譯完成後，在 `{ type: "translation" }` 消息中附帶對應的 `segmentId`
+-- [123] [x] 前端：每段音頻（VAD end_utterance 觸發前）開始時生成唯一 segmentId，先通過 WebSocket 發送 `{ type: "segment_start", segmentId }`，同時在 main panel 展示區按順序創建 OT loading card（帶馬賽克/skeleton 效果）
+-- [124] [x] 前端：實現 OT loading card 有序揭示——後端 translation 消息含 segmentId，前端據此定位 card；即使結果亂序返回，也必須按音頻錄入順序依次揭示（前一段未顯示則排隊等待）
+-- [125] [x] Bug 修復：多次說話時只有第一個 OT loading card 的馬賽克效果被正常揭示，後續 card 即使收到翻譯結果也維持馬賽克狀態——排查有序揭示隊列的清空/重置邏輯（pendingQueue、revealedCount 等狀態是否在每次 end_utterance 後正確推進）
+-- [126] [x] 前端：展示區自動滾動至底部——每當有新對話 card 追加（實時翻譯或歷史記錄加載完畢）時，自動 scroll to bottom，確保最新內容始終可見
 
 ## 翻譯歷史分頁
+
+-- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢
+-- [128] [x] 前端：切換 topic 時默認只加載最近 10 條歷史記錄；若後端返回有更多記錄，在展示區頂部顯示「查看之前十條」和「查看之前所有記錄」兩個按鈕
+-- [129] [x] 前端：「查看之前十條」點擊後帶 before 參數請求前一頁並追加到展示區頂部；「查看之前所有記錄」點擊後一次加載全部剩餘記錄並追加到頂部；全部加載完成後隱藏兩個按鈕
 
 ## 导出历史为 PDF
 
@@ -233,14 +256,6 @@
 -- [147] [x] 后端：实现 `requireRole(...roles)` 钩子工厂函数——读取 JWT userId，查询用户 role，不满足则返回 403；供路由 `onRequest` 使用
 -- [148] [x] 后端：为 `POST /invitation-codes` 和 `GET /invitation-codes` 两个路由添加 `requireRole('agent', 'admin')` 鉴权
 
-## 翻譯歷史分頁
-
--- [127] [x] 後端：`GET /topics/:topicId/translations` 支持分頁參數 `limit`（默認 10）和 `before`（timestamp/id，返回此時間點之前的記錄），實現向前翻頁查詢
--- [128] [x] 前端：切換 topic 時默認只加載最近 10 條歷史記錄；若後端返回有更多記錄，在展示區頂部顯示「查看之前十條」和「查看之前所有記錄」兩個按鈕
--- [129] [x] 前端：「查看之前十條」點擊後帶 before 參數請求前一頁並追加到展示區頂部；「查看之前所有記錄」點擊後一次加載全部剩餘記錄並追加到頂部；全部加載完成後隱藏兩個按鈕
-
-## pending things End
-
 ## Admin 管理页
 
 -- [149] [x] 后端：创建 `routes/admin.ts`，实现 `GET /admin/users` 路由，支持 query 参数 `filter`（name/email 模糊搜索，默认 null）、`order`（asc/desc，默认 desc 按 createdAt）、`page`（默认 1）、`pageSize`（默认且最大 15），返回 `{ users, total, page, pageSize }`，添加 `requireRole('admin')` 守卫
@@ -250,29 +265,10 @@
 -- [153] [x] 前端：实现用户管理子界面——表格展示 id、name、email、role、active；每行带 Edit 按钮，点击后仅允许切换 active 状态，提交调用 `PATCH /admin/users/:userId`；表格上方提供 filter 输入框（防抖模糊搜索）和 order 排序切换（默认 desc），表格下方提供分页控件（默认 page=1，pageSize=15），filter/order 变化时重置为第 1 页
 -- [154] [x] 前端：实现激活码管理子界面——表格展示 code、used 状态及切换按钮；页面顶部添加邀请码输入框 + 提交按钮，调用 `POST /admin/invitation-codes`；每行切换按钮调用 `PATCH /admin/invitation-codes/:codeId`；表格上方提供 filter 下拉（未使用/已使用/全部，默认未使用）和 order 切换（默认 desc），表格下方提供分页控件（默认 page=1，pageSize=15），filter/order 变化时重置为第 1 页
 
-## AI API 集成
+## Admin 页面权限调整与 Filter 功能
 
--- [115] [x] 后端：集成 Kimi / Gemini 标准文本 API——在 `backend/.env` 添加 `GEMINI_API_KEY` 和 `KIMI_API_KEY`，安装对应 SDK（`@google/generative-ai`），实现 `aiService.translate(text)` 调用 AI API 进行文本翻译
--- [116] [x] 后端：集成 Gemini Live 实时流式 API——实现流式调用能力，支持逐段返回翻译结果并通过 WebSocket 实时推送至前端
-
-## Live 翻譯 AI 集成
-
--- [117] [x] 後端：創建 `backend/src/config/prompts.ts`，導出音頻翻譯的 pre-prompt（system instruction），要求 AI API 基於語言返回 JSON 格式 `{"o": "<原文>", "t": "<譯文>"}` 且不輸出其他任何內容. 
--- [118] [x] 後端：在 `routes/liveTranslation.ts` 的 `end_utterance` 處理中，並發執行文件保存 + 調用 AI API（使用 prompts.ts 的 instructionForLiveAudio）；解析返回的 `{o, t}` JSON，通過 WebSocket 推送翻譯結果至前端；兩個操作互不等待
-
-## 翻譯歷史
-
--- [119] [x] 後端：`liveTranslation.ts` AI 翻譯成功後，將 `{originalText, translatedText, topicId, userId}` 保存為 TranslationRecord 寫入 MongoDB. 這個保存過程不能阻礙 AI翻譯的進程。意思就是，如果保存的時候，websocket有新的chunk進來。ai 翻譯要同時進行。
--- [120] [x] 前端：Dashboard WebSocket 監聽 `{ type: "translation" }` 消息，實時將 `{original, translated}` 追加到 main panel 展示區域
--- [121] [x] 前端：點擊 sidebar topic 時，調用 `GET /topics/:topicId/translations` 加載歷史翻譯記錄，在 main panel 中渲染歷史列表（之後實時新增的條目繼續追加）
-
-## OT Loading Card 有序揭示
-
--- [122] [x] 後端：WebSocket 協議擴展——接收 `{ type: "segment_start", segmentId }` 消息，記錄 segmentId 與當前 buffer 的對應關係；翻譯完成後，在 `{ type: "translation" }` 消息中附帶對應的 `segmentId`
--- [123] [x] 前端：每段音頻（VAD end_utterance 觸發前）開始時生成唯一 segmentId，先通過 WebSocket 發送 `{ type: "segment_start", segmentId }`，同時在 main panel 展示區按順序創建 OT loading card（帶馬賽克/skeleton 效果）
--- [124] [x] 前端：實現 OT loading card 有序揭示——後端 translation 消息含 segmentId，前端據此定位 card；即使結果亂序返回，也必須按音頻錄入順序依次揭示（前一段未顯示則排隊等待）
--- [125] [x] Bug 修復：多次說話時只有第一個 OT loading card 的馬賽克效果被正常揭示，後續 card 即使收到翻譯結果也維持馬賽克狀態——排查有序揭示隊列的清空/重置邏輯（pendingQueue、revealedCount 等狀態是否在每次 end_utterance 後正確推進）
--- [126] [x] 前端：展示區自動滾動至底部——每當有新對話 card 追加（實時翻譯或歷史記錄加載完畢）時，自動 scroll to bottom，確保最新內容始終可見
-
-
-
+-- [155] [ ] 后端：更新 admin 路由权限守卫——`GET /admin/users` 和 `PATCH /admin/users/:userId` 改为 `requireRole('agent', 'admin')`；`GET /admin/invitation-codes` 改为 `requireRole('agent', 'admin')`；`POST /admin/invitation-codes` 和 `PATCH /admin/invitation-codes/:codeId` 保持 `requireRole('admin')`
+-- [156] [ ] 前端：admin 页面（`/admin`）鉴权更新——将 authGuard 改为 `agent` 和 `admin` 均可访问，非这两种角色才重定向至 `/dashboard`
+-- [157] [ ] 前端：admin 用户管理页面实现 filter 功能——filter 输入框（防抖模糊搜索 name/email）实际连接到 `GET /admin/users?filter=...` API，filter/order 变化时重置分页至第 1 页
+-- [158] [ ] 前端：admin 激活码管理页面实现 filter 功能——filter 下拉（未使用/已使用/全部，默认未使用）实际连接到 `GET /admin/invitation-codes?filter=...` API，filter/order 变化时重置分页至第 1 页
+-- [159] [ ] 前端：admin 激活码管理页面按角色控制操作权限——`agent` 用户隐藏「添加邀请码」输入框和每行切换 used 状态按钮；仅 `admin` 显示这些操作入口
