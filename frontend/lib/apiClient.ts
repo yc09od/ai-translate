@@ -184,6 +184,7 @@ export interface AdminCode {
   id: string;
   code: string;
   used: boolean;
+  role: string;
   createdAt: string;
 }
 export interface AdminCodesResponse {
@@ -201,12 +202,12 @@ export async function adminGetCodes(params: {
   const res = await client.get('/admin/invitation-codes', { params });
   return res.data;
 }
-export async function adminCreateCode(code: string): Promise<AdminCode> {
-  const res = await client.post('/admin/invitation-codes', { code });
+export async function adminCreateCode(code: string, role: string = 'customer'): Promise<AdminCode> {
+  const res = await client.post('/admin/invitation-codes', { code, role });
   return res.data;
 }
-export async function adminUpdateCodeUsed(codeId: string, used: boolean): Promise<void> {
-  await client.patch(`/admin/invitation-codes/${codeId}`, { used });
+export async function adminUpdateCode(codeId: string, fields: { used?: boolean; role?: string }): Promise<void> {
+  await client.patch(`/admin/invitation-codes/${codeId}`, fields);
 }
 
 export default client;

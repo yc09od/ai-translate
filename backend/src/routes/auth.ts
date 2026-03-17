@@ -269,7 +269,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       const { User } = await import("../models/User");
       const user = await User.findByIdAndUpdate(
         payload.userId,
-        { active: true },
+        { active: true, role: invitation.role ?? 'customer' },
         { new: true },
       );
       if (!user) {

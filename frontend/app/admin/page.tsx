@@ -8,7 +8,7 @@ import {
   adminUpdateUser,
   adminGetCodes,
   adminCreateCode,
-  adminUpdateCodeUsed,
+  adminUpdateCode,
   type AdminUser,
   type AdminCode,
 } from '@/lib/apiClient';
@@ -310,9 +310,13 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
   const [filter, setFilter] = useState<'used' | 'unused' | 'null'>('unused');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [newCode, setNewCode] = useState('');
+  const [newRole, setNewRole] = useState('customer');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editRole, setEditRole] = useState('');
+  const [saving, setSaving] = useState(false);
   const PAGE_SIZE = 15;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -338,8 +342,9 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
     setCreating(true);
     setCreateError('');
     try {
-      await adminCreateCode(trimmed);
+      await adminCreateCode(trimmed, newRole);
       setNewCode('');
+      setNewRole('customer');
       setPage(1);
       await load();
     } catch (err: unknown) {
@@ -351,8 +356,24 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
   }
 
   async function handleToggleUsed(c: AdminCode) {
-    await adminUpdateCodeUsed(c.id, !c.used);
+    await adminUpdateCode(c.id, { used: !c.used });
     await load();
+  }
+
+  function startEditRole(c: AdminCode) {
+    setEditingId(c.id);
+    setEditRole(c.role);
+  }
+
+  async function submitEditRole(codeId: string) {
+    setSaving(true);
+    try {
+      await adminUpdateCode(codeId, { role: editRole });
+      setEditingId(null);
+      await load();
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -367,6 +388,11 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
             onChange={(e) => { setNewCode(e.target.value.replace(/[\s\t]/g, '')); setCreateError(''); }}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
+          <select style={styles.select} value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+            <option value="customer">Customer</option>
+            <option value="agent">Agent</option>
+            <option value="admin">Admin</option>
+          </select>
           <button
             style={styles.btn('ghost')}
             onClick={() => setNewCode(generateUniqueCode(codes.map((c) => c.code)))}
@@ -407,6 +433,7 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
         <thead>
           <tr>
             <th style={styles.th}>Code</th>
+            <th style={styles.th}>Role</th>
             <th style={styles.th}>Status</th>
             <th style={styles.th}>Created</th>
             {isAdmin && <th style={styles.th}>Action</th>}
@@ -417,6 +444,17 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
             <tr key={c.id}>
               <td style={{ ...styles.td, fontFamily: 'monospace', fontWeight: 600 }}>{c.code}</td>
               <td style={styles.td}>
+                {isAdmin && editingId === c.id ? (
+                  <select style={styles.select} value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                    <option value="customer">Customer</option>
+                    <option value="agent">Agent</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                ) : (
+                  <span style={{ textTransform: 'capitalize' }}>{c.role}</span>
+                )}
+              </td>
+              <td style={styles.td}>
                 <span style={styles.badge(!c.used)}>{c.used ? 'Used' : 'Unused'}</span>
               </td>
               <td style={{ ...styles.td, color: '#6b7280', fontSize: '13px' }}>
@@ -424,19 +462,35 @@ function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
               </td>
               {isAdmin && (
                 <td style={styles.td}>
-                  <button
-                    style={styles.btn(c.used ? 'ghost' : 'danger')}
-                    onClick={() => handleToggleUsed(c)}
-                  >
-                    {c.used ? 'Mark Unused' : 'Mark Used'}
-                  </button>
+                  {editingId === c.id ? (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button style={styles.btn('primary')} onClick={() => submitEditRole(c.id)} disabled={saving}>
+                        {saving ? 'Saving…' : 'Save'}
+                      </button>
+                      <button style={styles.btn('ghost')} onClick={() => setEditingId(null)} disabled={saving}>
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button style={styles.btn('ghost')} onClick={() => startEditRole(c)}>
+                        Edit Role
+                      </button>
+                      <button
+                        style={styles.btn(c.used ? 'ghost' : 'danger')}
+                        onClick={() => handleToggleUsed(c)}
+                      >
+                        {c.used ? 'Mark Unused' : 'Mark Used'}
+                      </button>
+                    </div>
+                  )}
                 </td>
               )}
             </tr>
           ))}
           {!loading && codes.length === 0 && (
             <tr>
-              <td colSpan={isAdmin ? 4 : 3} style={{ ...styles.td, textAlign: 'center', color: '#9ca3af', padding: '32px' }}>
+              <td colSpan={isAdmin ? 5 : 4} style={{ ...styles.td, textAlign: 'center', color: '#9ca3af', padding: '32px' }}>
                 No codes found
               </td>
             </tr>

@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { User } from '../models/User'
 import { InvitationCode } from '../models/InvitationCode'
 import { requireRole } from '../hooks/requireRole'
+import { deleteSession, deleteRefreshToken } from '../services/sessionStore'
 
 const PAGE_SIZE_MAX = 15
 
@@ -113,6 +114,11 @@ export async function adminRoutes(fastify: FastifyInstance) {
 
       const user = await User.findByIdAndUpdate(userId, update, { new: true })
       if (!user) return reply.status(404).send({ error: 'User not found' })
+
+      if (update.active === false) {
+        await Promise.all([deleteSession(userId), deleteRefreshToken(userId)])
+      }
+
       return {
         id: (user._id as { toString(): string }).toString(),
         active: user.active,
@@ -169,6 +175,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           id: (c._id as { toString(): string }).toString(),
           code: c.code,
           used: c.used,
+          role: c.role,
           createdAt: c.createdAt,
         })),
         total,
@@ -189,21 +196,25 @@ export async function adminRoutes(fastify: FastifyInstance) {
         body: {
           type: 'object',
           required: ['code'],
-          properties: { code: { type: 'string', minLength: 1 } },
+          properties: {
+            code: { type: 'string', minLength: 1 },
+            role: { type: 'string', enum: ['customer', 'agent', 'admin'] },
+          },
         },
       },
       onRequest: [(fastify as any).authenticate, requireRole('admin')],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const { code } = request.body as { code: string }
+      const { code, role = 'customer' } = request.body as { code: string; role?: string }
       if (/[\s\t]/.test(code)) return reply.status(400).send({ error: 'Code must not contain spaces or tabs' })
       const existing = await InvitationCode.findOne({ code })
       if (existing) return reply.status(409).send({ error: 'Code already exists' })
-      const invitation = await InvitationCode.create({ code })
+      const invitation = await InvitationCode.create({ code, role })
       return reply.status(201).send({
         id: (invitation._id as { toString(): string }).toString(),
         code: invitation.code,
         used: invitation.used,
+        role: invitation.role,
       })
     },
   )
@@ -223,21 +234,28 @@ export async function adminRoutes(fastify: FastifyInstance) {
         },
         body: {
           type: 'object',
-          required: ['used'],
-          properties: { used: { type: 'boolean' } },
+          properties: {
+            used: { type: 'boolean' },
+            role: { type: 'string', enum: ['customer', 'agent', 'admin'] },
+          },
         },
       },
       onRequest: [(fastify as any).authenticate, requireRole('admin')],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { codeId } = request.params as { codeId: string }
-      const { used } = request.body as { used: boolean }
-      const code = await InvitationCode.findByIdAndUpdate(codeId, { used }, { new: true })
+      const body = request.body as { used?: boolean; role?: string }
+      const update: Record<string, unknown> = {}
+      if (body.used !== undefined) update.used = body.used
+      if (body.role !== undefined) update.role = body.role
+      if (Object.keys(update).length === 0) return reply.status(400).send({ error: 'No valid fields to update' })
+      const code = await InvitationCode.findByIdAndUpdate(codeId, update, { new: true })
       if (!code) return reply.status(404).send({ error: 'Code not found' })
       return {
         id: (code._id as { toString(): string }).toString(),
         code: code.code,
         used: code.used,
+        role: code.role,
       }
     },
   )
