@@ -18,6 +18,9 @@ COPY --from=builder /app/dist ./dist
 COPY package.json yarn.lock ./
 RUN yarn install --production --frozen-lockfile
 
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodeapp
+USER nodeapp
+
 EXPOSE 60000
 
 CMD ["node", "dist/index.js"]
