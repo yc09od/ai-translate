@@ -151,4 +151,62 @@ export async function getTranslations(
   return { records, total: res.data.total };
 }
 
+// Admin: users
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  active: boolean;
+  createdAt: string;
+}
+export interface AdminUsersResponse {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export async function adminGetUsers(params: {
+  filter?: string;
+  order?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminUsersResponse> {
+  const res = await client.get('/admin/users', { params });
+  return res.data;
+}
+export async function adminUpdateUserActive(userId: string, active: boolean): Promise<void> {
+  await client.patch(`/admin/users/${userId}`, { active });
+}
+
+// Admin: invitation codes
+export interface AdminCode {
+  id: string;
+  code: string;
+  used: boolean;
+  createdAt: string;
+}
+export interface AdminCodesResponse {
+  codes: AdminCode[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+export async function adminGetCodes(params: {
+  filter?: 'used' | 'unused' | 'null';
+  order?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}): Promise<AdminCodesResponse> {
+  const res = await client.get('/admin/invitation-codes', { params });
+  return res.data;
+}
+export async function adminCreateCode(code: string): Promise<AdminCode> {
+  const res = await client.post('/admin/invitation-codes', { code });
+  return res.data;
+}
+export async function adminUpdateCodeUsed(codeId: string, used: boolean): Promise<void> {
+  await client.patch(`/admin/invitation-codes/${codeId}`, { used });
+}
+
 export default client;

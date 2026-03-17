@@ -18,6 +18,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               email: { type: 'string' },
               name: { type: 'string' },
               provider: { type: 'string' },
+              role: { type: 'string' },
             },
           },
         },
@@ -35,6 +36,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         email: user.email,
         name: user.name,
         provider: user.provider,
+        role: user.role,
       }
     },
   )

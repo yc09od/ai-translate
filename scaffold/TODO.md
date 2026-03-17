@@ -241,6 +241,15 @@
 
 ## pending things End
 
+## Admin 管理页
+
+-- [149] [x] 后端：创建 `routes/admin.ts`，实现 `GET /admin/users` 路由，支持 query 参数 `filter`（name/email 模糊搜索，默认 null）、`order`（asc/desc，默认 desc 按 createdAt）、`page`（默认 1）、`pageSize`（默认且最大 15），返回 `{ users, total, page, pageSize }`，添加 `requireRole('admin')` 守卫
+-- [150] [x] 后端：在 `routes/admin.ts` 中实现 `PATCH /admin/users/:userId` 路由，仅允许更新 `active` 字段，添加 `requireRole('admin')` 守卫
+-- [151] [x] 后端：在 `routes/admin.ts` 中实现 `GET /admin/invitation-codes`（支持 query 参数 `filter`（unused/used/null，默认 unused）、`order`（asc/desc，默认 desc 按 createdAt）、`page`（默认 1）、`pageSize`（默认且最大 15），返回 `{ codes, total, page, pageSize }`）、`POST /admin/invitation-codes`、`PATCH /admin/invitation-codes/:codeId`（切换 `used` 状态）路由，均添加 `requireRole('admin')` 守卫
+-- [152] [x] 前端：创建 `/admin` 页面路由，添加 admin 角色鉴权（非 admin 用户重定向至 `/dashboard`）；页面包含顶部 Tab 切换「用户管理」/「激活码管理」
+-- [153] [x] 前端：实现用户管理子界面——表格展示 id、name、email、role、active；每行带 Edit 按钮，点击后仅允许切换 active 状态，提交调用 `PATCH /admin/users/:userId`；表格上方提供 filter 输入框（防抖模糊搜索）和 order 排序切换（默认 desc），表格下方提供分页控件（默认 page=1，pageSize=15），filter/order 变化时重置为第 1 页
+-- [154] [x] 前端：实现激活码管理子界面——表格展示 code、used 状态及切换按钮；页面顶部添加邀请码输入框 + 提交按钮，调用 `POST /admin/invitation-codes`；每行切换按钮调用 `PATCH /admin/invitation-codes/:codeId`；表格上方提供 filter 下拉（未使用/已使用/全部，默认未使用）和 order 切换（默认 desc），表格下方提供分页控件（默认 page=1，pageSize=15），filter/order 变化时重置为第 1 页
+
 ## AI API 集成
 
 -- [115] [x] 后端：集成 Kimi / Gemini 标准文本 API——在 `backend/.env` 添加 `GEMINI_API_KEY` 和 `KIMI_API_KEY`，安装对应 SDK（`@google/generative-ai`），实现 `aiService.translate(text)` 调用 AI API 进行文本翻译
