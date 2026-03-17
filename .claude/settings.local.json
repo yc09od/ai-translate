@@ -17,7 +17,10 @@
       "Bash(\"/c/Windows/System32/OpenSSH/ssh.exe\" -i \"C:/Users/horst/.ssh/hosrt_default_ssh\" -o \"StrictHostKeyChecking=no\" -o \"BatchMode=yes\" horst@187.124.226.145 \"whoami && echo ''Login success''\")",
       "mcp__hostinger-api__hosting_listWebsitesV1",
       "mcp__hostinger-api__VPS_getProjectListV1",
-      "mcp__hostinger-api__hosting_listOrdersV1"
+      "mcp__hostinger-api__hosting_listOrdersV1",
+      "Bash(ls /c/Users/horst/.claude/*.json)",
+      "Bash(ls /c/Users/horst/.claude/settings*)",
+      "mcp__hostinger-api__VPS_getProjectContentsV1"
     ]
   }
 }
