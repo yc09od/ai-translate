@@ -15,12 +15,13 @@ services:
   frontend:
     build:
       context: ./frontend
-    expose:
-      - "3000"
+      dockerfile: Dockerfile
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-    restart: unless-stopped
+      - 'PORT=${PORT:-3000}'
+    expose:
+      - '${PORT:-3000}'
     depends_on:
       backend:
         condition: service_healthy
@@ -38,9 +39,9 @@ services:
       - "60000"
     environment:
       - NODE_ENV=production
+      - BACKEND_PORT=60000
       - MONGODB_URI=mongodb://mongodb:27017/ai-translate
       - REDIS_URL=redis://redis:6379
-    restart: unless-stopped
     depends_on:
       mongodb:
         condition: service_healthy
