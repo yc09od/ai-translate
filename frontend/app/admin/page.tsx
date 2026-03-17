@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import client from '@/lib/apiClient';
 import {
   adminGetUsers,
-  adminUpdateUserActive,
+  adminUpdateUser,
   adminGetCodes,
   adminCreateCode,
   adminUpdateCodeUsed,
@@ -108,7 +108,7 @@ const styles = {
 
 // ── UserManagement ───────────────────────────────────────────────────────────
 
-function UserManagement() {
+function UserManagement({ isAdmin }: { isAdmin: boolean }) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -117,6 +117,7 @@ function UserManagement() {
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editActive, setEditActive] = useState(false);
+  const [editRole, setEditRole] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const PAGE_SIZE = 15;
@@ -155,12 +156,15 @@ function UserManagement() {
   function startEdit(u: AdminUser) {
     setEditingId(u.id);
     setEditActive(u.active);
+    setEditRole(u.role);
   }
 
   async function submitEdit(userId: string) {
     setSaving(true);
     try {
-      await adminUpdateUserActive(userId, editActive);
+      const fields: { active: boolean; role?: string } = { active: editActive };
+      if (isAdmin) fields.role = editRole;
+      await adminUpdateUser(userId, fields);
       setEditingId(null);
       await load();
     } finally {
@@ -208,7 +212,19 @@ function UserManagement() {
               <td style={styles.td}>{u.name}</td>
               <td style={styles.td}>{u.email}</td>
               <td style={styles.td}>
-                <span style={{ textTransform: 'capitalize' }}>{u.role}</span>
+                {editingId === u.id && isAdmin ? (
+                  <select
+                    style={styles.select}
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value)}
+                  >
+                    <option value="customer">Customer</option>
+                    <option value="agent">Agent</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                ) : (
+                  <span style={{ textTransform: 'capitalize' }}>{u.role}</span>
+                )}
               </td>
               <td style={styles.td}>
                 {editingId === u.id ? (
@@ -287,7 +303,7 @@ function generateUniqueCode(existingCodes: string[]): string {
   return code;
 }
 
-function CodeManagement() {
+function CodeManagement({ isAdmin }: { isAdmin: boolean }) {
   const [codes, setCodes] = useState<AdminCode[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -341,27 +357,29 @@ function CodeManagement() {
 
   return (
     <div>
-      {/* Add code */}
-      <div style={{ ...styles.toolbar, marginBottom: '20px' }}>
-        <input
-          style={styles.input}
-          placeholder="New invitation code…"
-          value={newCode}
-          onChange={(e) => { setNewCode(e.target.value.replace(/[\s\t]/g, '')); setCreateError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-        />
-        <button
-          style={styles.btn('ghost')}
-          onClick={() => setNewCode(generateUniqueCode(codes.map((c) => c.code)))}
-          disabled={creating}
-        >
-          Generate
-        </button>
-        <button style={styles.btn('primary')} onClick={handleCreate} disabled={creating || !newCode.trim()}>
-          {creating ? 'Adding…' : 'Add Code'}
-        </button>
-        {createError && <span style={styles.error}>{createError}</span>}
-      </div>
+      {/* Add code — admin only */}
+      {isAdmin && (
+        <div style={{ ...styles.toolbar, marginBottom: '20px' }}>
+          <input
+            style={styles.input}
+            placeholder="New invitation code…"
+            value={newCode}
+            onChange={(e) => { setNewCode(e.target.value.replace(/[\s\t]/g, '')); setCreateError(''); }}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          />
+          <button
+            style={styles.btn('ghost')}
+            onClick={() => setNewCode(generateUniqueCode(codes.map((c) => c.code)))}
+            disabled={creating}
+          >
+            Generate
+          </button>
+          <button style={styles.btn('primary')} onClick={handleCreate} disabled={creating || !newCode.trim()}>
+            {creating ? 'Adding…' : 'Add Code'}
+          </button>
+          {createError && <span style={styles.error}>{createError}</span>}
+        </div>
+      )}
 
       {/* Filter / order */}
       <div style={styles.toolbar}>
@@ -391,7 +409,7 @@ function CodeManagement() {
             <th style={styles.th}>Code</th>
             <th style={styles.th}>Status</th>
             <th style={styles.th}>Created</th>
-            <th style={styles.th}>Action</th>
+            {isAdmin && <th style={styles.th}>Action</th>}
           </tr>
         </thead>
         <tbody>
@@ -404,19 +422,21 @@ function CodeManagement() {
               <td style={{ ...styles.td, color: '#6b7280', fontSize: '13px' }}>
                 {new Date(c.createdAt).toLocaleDateString()}
               </td>
-              <td style={styles.td}>
-                <button
-                  style={styles.btn(c.used ? 'ghost' : 'danger')}
-                  onClick={() => handleToggleUsed(c)}
-                >
-                  {c.used ? 'Mark Unused' : 'Mark Used'}
-                </button>
-              </td>
+              {isAdmin && (
+                <td style={styles.td}>
+                  <button
+                    style={styles.btn(c.used ? 'ghost' : 'danger')}
+                    onClick={() => handleToggleUsed(c)}
+                  >
+                    {c.used ? 'Mark Unused' : 'Mark Used'}
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
           {!loading && codes.length === 0 && (
             <tr>
-              <td colSpan={4} style={{ ...styles.td, textAlign: 'center', color: '#9ca3af', padding: '32px' }}>
+              <td colSpan={isAdmin ? 4 : 3} style={{ ...styles.td, textAlign: 'center', color: '#9ca3af', padding: '32px' }}>
                 No codes found
               </td>
             </tr>
@@ -446,13 +466,15 @@ export default function AdminPage() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'users');
   const [checking, setChecking] = useState(true);
+  const [userRole, setUserRole] = useState<string>('');
 
-  // Verify admin role on mount
+  // Verify agent/admin role on mount
   useEffect(() => {
     client.get<{ role: string }>('/users/me').then((res) => {
-      if (res.data.role !== 'admin') {
+      if (!['agent', 'admin'].includes(res.data.role)) {
         router.replace('/dashboard');
       } else {
+        setUserRole(res.data.role);
         setChecking(false);
       }
     }).catch(() => {
@@ -482,7 +504,7 @@ export default function AdminPage() {
       </header>
 
       <main style={styles.content}>
-        {tab === 'users' ? <UserManagement /> : <CodeManagement />}
+        {tab === 'users' ? <UserManagement isAdmin={userRole === 'admin'} /> : <CodeManagement isAdmin={userRole === 'admin'} />}
       </main>
     </div>
   );

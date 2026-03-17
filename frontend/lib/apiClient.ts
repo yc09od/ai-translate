@@ -175,8 +175,8 @@ export async function adminGetUsers(params: {
   const res = await client.get('/admin/users', { params });
   return res.data;
 }
-export async function adminUpdateUserActive(userId: string, active: boolean): Promise<void> {
-  await client.patch(`/admin/users/${userId}`, { active });
+export async function adminUpdateUser(userId: string, fields: { active?: boolean; role?: string }): Promise<void> {
+  await client.patch(`/admin/users/${userId}`, fields);
 }
 
 // Admin: invitation codes

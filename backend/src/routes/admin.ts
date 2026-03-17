@@ -24,7 +24,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           },
         },
       },
-      onRequest: [(fastify as any).authenticate, requireRole('admin')],
+      onRequest: [(fastify as any).authenticate, requireRole('agent', 'admin')],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { filter, order = 'desc', page = 1, pageSize = PAGE_SIZE_MAX } = request.query as {
@@ -84,20 +84,39 @@ export async function adminRoutes(fastify: FastifyInstance) {
         },
         body: {
           type: 'object',
-          required: ['active'],
-          properties: { active: { type: 'boolean' } },
+          properties: {
+            active: { type: 'boolean' },
+            role: { type: 'string', enum: ['customer', 'agent', 'admin'] },
+          },
         },
       },
-      onRequest: [(fastify as any).authenticate, requireRole('admin')],
+      onRequest: [(fastify as any).authenticate, requireRole('agent', 'admin')],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { userId } = request.params as { userId: string }
-      const { active } = request.body as { active: boolean }
-      const user = await User.findByIdAndUpdate(userId, { active }, { new: true })
+      const body = request.body as { active?: boolean; role?: string }
+      const { userId: requestUserId } = (request as any).user as { userId: string }
+
+      const update: Record<string, unknown> = {}
+      if (body.active !== undefined) update.active = body.active
+      if (body.role !== undefined) {
+        const requestUser = await User.findById(requestUserId).select('role').lean()
+        if (!requestUser || requestUser.role !== 'admin') {
+          return reply.status(403).send({ error: 'Only admin can change user role' })
+        }
+        update.role = body.role
+      }
+
+      if (Object.keys(update).length === 0) {
+        return reply.status(400).send({ error: 'No valid fields to update' })
+      }
+
+      const user = await User.findByIdAndUpdate(userId, update, { new: true })
       if (!user) return reply.status(404).send({ error: 'User not found' })
       return {
         id: (user._id as { toString(): string }).toString(),
         active: user.active,
+        role: user.role,
       }
     },
   )
@@ -120,7 +139,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
           },
         },
       },
-      onRequest: [(fastify as any).authenticate, requireRole('admin')],
+      onRequest: [(fastify as any).authenticate, requireRole('agent', 'admin')],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const { filter = 'unused', order = 'desc', page = 1, pageSize = PAGE_SIZE_MAX } = request.query as {

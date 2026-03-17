@@ -38,10 +38,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { logoutUser, getTopics, createTopic, deleteTopic, updateTopicTitle, reorderTopics } from '@/lib/apiClient';
+import client from '@/lib/apiClient';
 import { toggleSidebar } from '@/lib/store/sidebarSlice';
 import { toggleLanguage } from '@/lib/store/languageSlice';
 import { useLanguage } from '@/lib/i18n';
 import LanguageIcon from '@mui/icons-material/Language';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import type { RootState } from '@/lib/store/store';
 
 interface Topic {
@@ -214,9 +216,14 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
   const editInputRef = useRef<HTMLInputElement>(null);
   const cancelBlurRef = useRef(false);
 
+  const [userRole, setUserRole] = useState<string>('');
   const { t, lang } = useLanguage();
   const isMobile = useMediaQuery('(max-width:767px)');
   const username = getUsernameFromCookie();
+
+  useEffect(() => {
+    client.get<{ role: string }>('/users/me').then((res) => setUserRole(res.data.role)).catch(() => {});
+  }, []);
 
   // Dev-only: token expiry countdown
   const isDev = process.env.NODE_ENV !== 'production';
@@ -547,6 +554,17 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
             <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
             {t.userProfile}
           </MenuItem>
+          {['agent', 'admin'].includes(userRole) && (
+            <MenuItem
+              onClick={() => {
+                setMenuAnchor(null);
+                window.location.href = '/admin';
+              }}
+            >
+              <AdminPanelSettingsIcon fontSize="small" sx={{ mr: 1 }} />
+              {t.adminPanel}
+            </MenuItem>
+          )}
           <MenuItem
             onClick={() => dispatch(toggleLanguage())}
             sx={{ justifyContent: 'space-between', gap: 1 }}

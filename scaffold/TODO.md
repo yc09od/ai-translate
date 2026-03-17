@@ -267,8 +267,8 @@
 
 ## Admin 页面权限调整与 Filter 功能
 
--- [155] [ ] 后端：更新 admin 路由权限守卫——`GET /admin/users` 和 `PATCH /admin/users/:userId` 改为 `requireRole('agent', 'admin')`；`GET /admin/invitation-codes` 改为 `requireRole('agent', 'admin')`；`POST /admin/invitation-codes` 和 `PATCH /admin/invitation-codes/:codeId` 保持 `requireRole('admin')`
--- [156] [ ] 前端：admin 页面（`/admin`）鉴权更新——将 authGuard 改为 `agent` 和 `admin` 均可访问，非这两种角色才重定向至 `/dashboard`
--- [157] [ ] 前端：admin 用户管理页面实现 filter 功能——filter 输入框（防抖模糊搜索 name/email）实际连接到 `GET /admin/users?filter=...` API，filter/order 变化时重置分页至第 1 页
--- [158] [ ] 前端：admin 激活码管理页面实现 filter 功能——filter 下拉（未使用/已使用/全部，默认未使用）实际连接到 `GET /admin/invitation-codes?filter=...` API，filter/order 变化时重置分页至第 1 页
--- [159] [ ] 前端：admin 激活码管理页面按角色控制操作权限——`agent` 用户隐藏「添加邀请码」输入框和每行切换 used 状态按钮；仅 `admin` 显示这些操作入口
+-- [155] [x] 后端：更新 admin 路由权限守卫——`GET /admin/users` 和 `PATCH /admin/users/:userId` 改为 `requireRole('agent', 'admin')`；`GET /admin/invitation-codes` 改为 `requireRole('agent', 'admin')`；`POST /admin/invitation-codes` 和 `PATCH /admin/invitation-codes/:codeId` 保持 `requireRole('admin')`
+-- [156] [x] 前端：admin 页面（`/admin`）鉴权更新——将 authGuard 改为 `agent` 和 `admin` 均可访问，非这两种角色才重定向至 `/dashboard`
+-- [157] [x] 前端：admin 用户管理页面实现 filter 功能——filter 输入框（防抖模糊搜索 name/email）实际连接到 `GET /admin/users?filter=...` API，filter/order 变化时重置分页至第 1 页
+-- [158] [x] 前端：admin 激活码管理页面实现 filter 功能——filter 下拉（未使用/已使用/全部，默认未使用）实际连接到 `GET /admin/invitation-codes?filter=...` API，filter/order 变化时重置分页至第 1 页
+-- [159] [x] 前端：admin 激活码管理页面按角色控制操作权限——`agent` 用户隐藏「添加邀请码」输入框和每行切换 used 状态按钮；仅 `admin` 显示这些操作入口
