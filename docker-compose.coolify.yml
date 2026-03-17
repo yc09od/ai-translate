@@ -1,12 +1,12 @@
 # Coolify deployment — use this file in Coolify's "Docker Compose" source type.
 #
 # Environment variables are injected by Coolify — do NOT commit .env files.
-# Required backend vars: PORT, JWT_SECRET,
+# Required backend vars: BACKEND_PORT (default 60000), JWT_SECRET,
 #   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, MICROSOFT_CLIENT_ID,
 #   MICROSOFT_CLIENT_SECRET, FRONTEND_URL, CORS_ORIGINS,
 #   GEMINI_API_KEY, KIMI_API_KEY
 # (MONGODB_URI and REDIS_URL are auto-set via service names below)
-# Required frontend vars: NEXT_PUBLIC_API_URL, NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+# Required frontend vars: FRONTEND_PORT (default 3000), NEXT_PUBLIC_API_URL, NEXT_PUBLIC_GOOGLE_CLIENT_ID,
 #   NEXT_PUBLIC_GOOGLE_REDIRECT_URI, NEXT_PUBLIC_GOOGLE_OAUTH_URL,
 #   NEXT_PUBLIC_HOTMAIL_CLIENT_ID, NEXT_PUBLIC_HOTMAIL_REDIRECT_URI,
 #   NEXT_PUBLIC_HOTMAIL_OAUTH_URL
@@ -19,40 +19,21 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-      - 'PORT=${PORT:-3000}'
+      - 'PORT=${FRONTEND_PORT:-3000}'
     expose:
-      - '${PORT:-3000}'
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 150s
-
-  backend:
-    build:
-      context: ./backend
-    expose:
-      - "60000"
-    environment:
-      - NODE_ENV=production
-      - BACKEND_PORT=60000
-      - MONGODB_URI=mongodb://mongodb:27017/ai-translate
-      - REDIS_URL=redis://redis:6379
+      - '${FRONTEND_PORT:-3000}'
     depends_on:
       mongodb:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:60000/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:${FRONTEND_PORT:-3000}"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 150s
+
 
   mongodb:
     image: mongo:7
