@@ -40,7 +40,24 @@ function logout(): void {
   window.location.replace('/login');
 }
 
-export async function logoutUser(): Promise<void> {
+export async function logoutUser(action?: 'manualLogout'): Promise<void> {
+  if (action === 'manualLogout') {
+    // Use raw axios (bypasses interceptors) so no pre-emptive refresh is triggered.
+    // This clears the refresh token in Redis immediately, breaking any potential refresh loop.
+    const token = getToken();
+    try {
+      await axios.post(`${API_URL}/auth/logout`, null, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch {
+      // ignore backend errors, still logout locally
+    }
+    document.cookie = 'token=; Max-Age=0; path=/';
+    window.location.replace('/login');
+    return;
+  }
+
   try {
     await client.post('/auth/logout');
   } catch {
