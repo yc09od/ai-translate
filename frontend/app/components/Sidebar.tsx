@@ -593,7 +593,7 @@ export default function Sidebar({ selectedTopic, onSelectTopic, onOpenUserProfil
           <MenuItem
             onClick={async () => {
               setMenuAnchor(null);
-              await logoutUser();
+              await logoutUser('manualLogout');
             }}
           >
             <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
