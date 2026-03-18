@@ -338,10 +338,19 @@ export async function authRoutes(fastify: FastifyInstance) {
       },
       onRequest: [(fastify as any).authenticate],
     },
-    async (request: FastifyRequest) => {
+    async (request: FastifyRequest, reply: FastifyReply) => {
       const user = request.user as { userId: string };
       await deleteSession(user.userId);
       await deleteRefreshToken(user.userId);
+      const isProd = process.env.NODE_ENV === "production";
+      const clearCookieOpts = {
+        path: "/",
+        sameSite: "lax" as const,
+        secure: isProd,
+        domain: isProd ? (process.env.COOKIE_DOMAIN || undefined) : undefined,
+      };
+      reply.clearCookie("token", { ...clearCookieOpts, httpOnly: false });
+      reply.clearCookie("refreshToken", { ...clearCookieOpts, httpOnly: true });
       return { success: true };
     },
   );
